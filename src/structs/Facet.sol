@@ -2,6 +2,6 @@
 pragma solidity ^0.8.29;
 
 struct Facet {
-    uint256 index;
+    uint8 index;
     address facet;
 }

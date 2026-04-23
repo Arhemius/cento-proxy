@@ -5,12 +5,5 @@ import { Facet } from "../structs/Facet.sol";
 
 interface IFacetManager {
     
-    function atomicUpdate(
-        uint256[] memory toRemove, 
-        Facet[] memory toUpdate, 
-        Facet[] memory toRestore,
-        address[] memory toAdd, 
-        bytes4[] memory addI,
-        bytes4[] memory removeI
-    ) external;
+    function atomicUpdate(Facet[] memory toUpdate, bytes4[] memory addI, bytes4[] memory removeI) external;
 }

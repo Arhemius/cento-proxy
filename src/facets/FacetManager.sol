@@ -8,15 +8,12 @@ import { Facet } from "../structs/Facet.sol";
 contract FacetManager is IFacetManager { 
 
     function atomicUpdate(
-        uint256[] memory toRemove, 
-        Facet[] memory toUpdate, 
-        Facet[] memory toRestore,
-        address[] memory toAdd, 
+        Facet[] memory toUpdate,
         bytes4[] memory addI,
         bytes4[] memory removeI
     ) external override {
         DiamondLib.enforceIsContractOwner();
-        DiamondLib.atomicUpdate(toRemove, toUpdate, toRestore, toAdd, addI, removeI);
+        DiamondLib.atomicUpdate(toUpdate, addI, removeI);
     }
 
 }
