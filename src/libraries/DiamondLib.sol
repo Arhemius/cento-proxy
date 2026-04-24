@@ -8,11 +8,11 @@ library DiamondLib {
 
     bytes32 constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
+    event InterfaceAdded(bytes4 interfaceType);
+    event InterfaceRemoved(bytes4 interfaceType);
     event FacetAdded(uint256 indexed index, address facet);
     event FacetRemoved(uint256 indexed index, address old);
     event FacetUpdated(uint256 indexed index, address oldFacet, address newFacet);
-    event InterfaceAdded(bytes4 interfaceType);
-    event InterfaceRemoved(bytes4 interfaceType);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     function loadBaseSlot() internal pure returns (FacetStorage storage fs) {
@@ -64,7 +64,7 @@ library DiamondLib {
     }
     
     function enforceIsContractOwner() internal view {
-        require(msg.sender == loadBaseSlot().contractOwner, "LibDiamond: Must be contract owner");
+        require(msg.sender == loadBaseSlot().contractOwner, "Must be contract owner");
     }
 
     function setContractOwner(address _newOwner) internal {
