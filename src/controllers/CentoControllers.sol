@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { DiamondLib } from "../libraries/DiamondLib.sol";
+import { LibCento } from "../libraries/LibCento.sol";
 
-contract CompatibilityStandards {
+contract CentoControllers {
 
     function delegate(uint8 index) internal {
-        bytes32 start = DiamondLib.BASE_SLOT;
+        bytes32 start = LibCento.BASE_SLOT;
         assembly {
             let facet := sload(add(start, index))
             if iszero(facet) { revert(0, 0) }

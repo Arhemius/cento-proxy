@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { DiamondLib } from "../libraries/DiamondLib.sol";
+import { LibCento } from "../libraries/LibCento.sol";
 import { FacetStorage } from "../structs/FacetStorage.sol";
 import { Facet } from "../structs/Facet.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
@@ -42,7 +42,7 @@ contract Observability is IERC165, IObservability {
     }
 
     function getFacets() external view returns (address[] memory result) {
-        FacetStorage storage fs = DiamondLib.loadBaseSlot();
+        FacetStorage storage fs = LibCento.loadBaseSlot();
         uint256 bitmap = fs.indexBitmap;
         uint256 count;
         for (uint256 tmp = bitmap; tmp != 0; tmp &= (tmp - 1)) count++;
@@ -57,7 +57,7 @@ contract Observability is IERC165, IObservability {
     }
 
     function getFacetEntries() external view returns (Facet[] memory result) {
-        FacetStorage storage fs = DiamondLib.loadBaseSlot();
+        FacetStorage storage fs = LibCento.loadBaseSlot();
         uint256 bitmap = fs.indexBitmap;
         uint256 count;
         for (uint256 tmp = bitmap; tmp != 0; tmp &= (tmp - 1)) count++;
@@ -72,12 +72,12 @@ contract Observability is IERC165, IObservability {
     }
 
     function getBitmap() external view returns (uint256) {
-        FacetStorage storage fs = DiamondLib.loadBaseSlot();
+        FacetStorage storage fs = LibCento.loadBaseSlot();
         return fs.indexBitmap;
     }
 
     function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
-        FacetStorage storage fs = DiamondLib.loadBaseSlot();
+        FacetStorage storage fs = LibCento.loadBaseSlot();
         return fs.supportedInterfaces[_interfaceId];
     }
 }

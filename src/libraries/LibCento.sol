@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import { FacetStorage } from "../structs/FacetStorage.sol";
 import { Facet } from "../structs/Facet.sol";
 
-library DiamondLib {
+library LibCento {
 
     bytes32 constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
@@ -25,11 +25,11 @@ library DiamondLib {
     function setFacet(FacetStorage storage fs, uint8 index, address facet) internal {
         uint256 mask = uint256(1) << index;
         bool occupied = (fs.indexBitmap & mask) != 0;
-        require(occupied || facet != address(0), "Invalid transition");
-        require(facet != address(this), "Cannot register router as facet");
+        require(occupied || facet != address(0), "Cento: Invalid transition");
+        require(facet != address(this), "Cento: Cannot register router as facet");
         address old = fs.facets[index];
         if (facet != address(0)) {
-            require(old != facet, "Can't replace facet with same facet");
+            require(old != facet, "Cento: Can't replace facet with same facet");
             isNotEoa(facet);
             fs.facets[index] = facet;
             if (occupied) {
@@ -64,7 +64,7 @@ library DiamondLib {
     }
     
     function enforceIsContractOwner() internal view {
-        require(msg.sender == loadBaseSlot().contractOwner, "Must be contract owner");
+        require(msg.sender == loadBaseSlot().contractOwner, "Cento: Must be contract owner");
     }
 
     function setContractOwner(address _newOwner) internal {
@@ -79,11 +79,11 @@ library DiamondLib {
         assembly {
             size := extcodesize(a)
         }
-        require(size > 0, "No code / EOA");
+        require(size > 0, "Cento: No code / EOA");
         bytes3 prefix;
         assembly {
             extcodecopy(a, prefix, 0, 3)
         }
-        require(prefix != 0xef0100, "Facet is an EIP-7702 EOA");
+        require(prefix != 0xef0100, "Cento: Facet is an EIP-7702 EOA");
     }
 }

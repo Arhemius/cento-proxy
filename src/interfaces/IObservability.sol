@@ -10,5 +10,4 @@ interface IObservability {
     function getFacetEntries() external view returns (Facet[] memory result);
 
     function getBitmap() external view returns (uint256);
-    
 }

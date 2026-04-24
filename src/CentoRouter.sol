@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { CompatibilityStandards } from "./standards/CompatibilityStandards.sol";
+import { CentoControllers } from "./controllers/CentoControllers.sol";
 import { IObservability } from "./interfaces/IObservability.sol";
 import { IFacetManager } from "./interfaces/IFacetManager.sol";
-import { DiamondLib } from "./libraries/DiamondLib.sol";
+import { LibCento } from "./libraries/LibCento.sol";
 import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
 import { Facet } from "./structs/Facet.sol";
 
-contract DiamondRouter is CompatibilityStandards { 
+contract CentoRouter is CentoControllers { 
 
     constructor (address _contractOwner, address[3] memory facetAddresses) {
-        DiamondLib.setContractOwner(_contractOwner);
+        LibCento.setContractOwner(_contractOwner);
 
         Facet[] memory facets = new Facet[](3);
         facets[0] = Facet({index: 0, facet: facetAddresses[0]});
@@ -25,11 +25,11 @@ contract DiamondRouter is CompatibilityStandards {
         addInterfaces[2] = type(IFacetManager).interfaceId;
         addInterfaces[3] = type(IObservability).interfaceId;
 
-        DiamondLib.atomicUpdate(facets, addInterfaces, new bytes4[](0));
+        LibCento.atomicUpdate(facets, addInterfaces, new bytes4[](0));
     }
 
     function dispatch(uint8 trim) internal {
-        bytes32 start = DiamondLib.BASE_SLOT;
+        bytes32 start = LibCento.BASE_SLOT;
         assembly {
             let index := byte(0, calldataload(sub(calldatasize(), 1)))
             let facet := sload(add(start, index))
