@@ -6,7 +6,7 @@ import { Facet } from "../structs/Facet.sol";
 
 library LibCento {
 
-    bytes32 constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+    bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
     event InterfaceAdded(bytes4 interfaceType);
     event InterfaceRemoved(bytes4 interfaceType);

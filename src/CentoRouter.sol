@@ -11,6 +11,8 @@ import { Facet } from "./structs/Facet.sol";
 
 contract CentoRouter is CentoControllers { 
 
+    bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+
     constructor (address _contractOwner, address[3] memory facetAddresses) {
         LibCento.setContractOwner(_contractOwner);
 
@@ -28,27 +30,37 @@ contract CentoRouter is CentoControllers {
         LibCento.atomicUpdate(facets, addInterfaces, new bytes4[](0));
     }
 
-    function dispatch(uint8 trim) internal {
-        bytes32 start = LibCento.BASE_SLOT;
+    function centoEntry() external payable {
         assembly {
-            let index := byte(0, calldataload(sub(calldatasize(), 1)))
-            let facet := sload(add(start, index))
+            let size := calldatasize()
+            let index := byte(0, calldataload(sub(size, 1)))
+            let facet := sload(add(BASE_SLOT, index))
             if iszero(facet) { revert(0, 0) }
-            calldatacopy(0, sub(trim, 1), sub(calldatasize(), trim))
-            let result := delegatecall(gas(), facet, 0, sub(calldatasize(), trim), 0, 0)
+            size := sub(size, 5)
+            calldatacopy(0, 4, size)
+            if iszero(delegatecall(gas(), facet, 0, size, 0, 0)) {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
             returndatacopy(0, 0, returndatasize())
-            switch result
-            case 0 { revert(0, returndatasize()) }
-            default { return(0, returndatasize()) } 
+            return(0, returndatasize()) 
         }
     }
 
-    function centoEntry() external payable {
-        dispatch(5);
-    }
-
     fallback() external payable { 
-        dispatch(1);
+        assembly {
+            let size := sub(calldatasize(), 1)
+            let index := byte(0, calldataload(size))
+            let facet := sload(add(BASE_SLOT, index))
+            if iszero(facet) { revert(0, 0) }
+            calldatacopy(0, 0, size)
+            if iszero(delegatecall(gas(), facet, 0, size, 0, 0)) {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+            returndatacopy(0, 0, returndatasize())
+            return(0, returndatasize())
+        }
     }
 
     receive() external payable {}
