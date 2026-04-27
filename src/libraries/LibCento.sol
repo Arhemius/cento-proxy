@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { FacetStorage } from "../structs/FacetStorage.sol";
+import { CentoStorage } from "../structs/CentoStorage.sol";
 import { Facet } from "../structs/Facet.sol";
 import { LibBitmap } from "./LibBitmap.sol";
 
@@ -23,55 +23,55 @@ library LibCento {
     error NoCodeOrEOA(address target);
     error Is7702EOA(address account);
 
-    function loadBaseSlot() internal pure returns (FacetStorage storage fs) {
+    function loadBaseSlot() internal pure returns (CentoStorage storage cs) {
         bytes32 position = BASE_SLOT;
         assembly {
-            fs.slot := position
+            cs.slot := position
         }
     }
 
-    function setFacet(FacetStorage storage fs, uint8 index, address facet) internal {
-        uint256 bitmap = fs.indexBitmap;
+    function setFacet(CentoStorage storage cs, uint8 index, address facet) internal {
+        uint256 bitmap = cs.indexBitmap;
         bool occupied = LibBitmap.isSlotOccupied(bitmap, index);
         if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
             isNotEoa(facet);
             if (occupied) {
-                address old = fs.facets[index];
+                address old = cs.facets[index];
                 if (old == facet) revert SameFacetReplacement(index, facet);
-                fs.facets[index] = facet;
+                cs.facets[index] = facet;
                 emit FacetUpdated(index, old, facet);
             } else {
-                fs.facets[index] = facet;
-                fs.indexBitmap = LibBitmap.fillSlotAt(bitmap, index);
+                cs.facets[index] = facet;
+                cs.indexBitmap = LibBitmap.fillSlotAt(bitmap, index);
                 emit FacetAdded(index, facet);
             }
         } else {
-            address old = fs.facets[index];
-            fs.facets[index] = facet;
-            fs.indexBitmap = LibBitmap.clearSlotAt(bitmap, index);
+            address old = cs.facets[index];
+            cs.facets[index] = facet;
+            cs.indexBitmap = LibBitmap.clearSlotAt(bitmap, index);
             emit FacetRemoved(index, old);
         }
     }
 
-    function setInterface(FacetStorage storage fs, bytes4 interfaceType, bool enabled) internal {
-        fs.supportedInterfaces[interfaceType] = enabled;
+    function setInterface(CentoStorage storage cs, bytes4 interfaceType, bool enabled) internal {
+        cs.supportedInterfaces[interfaceType] = enabled;
         if (enabled) emit InterfaceAdded(interfaceType);
         else         emit InterfaceRemoved(interfaceType);
     }
 
     function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory removeI) internal {
-        FacetStorage storage fs = loadBaseSlot();
+        CentoStorage storage cs = loadBaseSlot();
         uint256 i;
-        for (     ; i < setF.length; i++)     setFacet(fs, setF[i].index, setF[i].facet);
-        for (i = 0; i < addI.length; i++)     setInterface(fs, addI[i], true);
-        for (i = 0; i < removeI.length; i++)  setInterface(fs, removeI[i], false);
+        for (     ; i < setF.length; i++)     setFacet(cs, setF[i].index, setF[i].facet);
+        for (i = 0; i < addI.length; i++)     setInterface(cs, addI[i], true);
+        for (i = 0; i < removeI.length; i++)  setInterface(cs, removeI[i], false);
     }
 
     function contractOwner() internal view returns (address owner_) {
-        FacetStorage storage fs = loadBaseSlot();
-        owner_ = fs.contractOwner;
+        CentoStorage storage cs = loadBaseSlot();
+        owner_ = cs.contractOwner;
     }
     
     function enforceIsContractOwner() internal view {
@@ -79,9 +79,9 @@ library LibCento {
     }
 
     function setContractOwner(address _newOwner) internal {
-        FacetStorage storage fs = loadBaseSlot();
-        address previousOwner = fs.contractOwner;
-        fs.contractOwner = _newOwner;
+        CentoStorage storage cs = loadBaseSlot();
+        address previousOwner = cs.contractOwner;
+        cs.contractOwner = _newOwner;
         emit OwnershipTransferred(previousOwner, _newOwner);
     }
 

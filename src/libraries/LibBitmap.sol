@@ -7,6 +7,8 @@ library LibBitmap {
     bytes32 internal constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
     bytes32 internal constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
 
+    error NoFreeSlots();
+
     function _unsafeToUint64(uint256 x) private pure returns (uint64 r) {
         assembly {
             r := x
@@ -28,10 +30,11 @@ library LibBitmap {
         unchecked {
             // assert(lsb != 0);
             // assert((lsb & (lsb - 1)) == 0);
-            if ((lsb & type(uint64).max) != 0)          return _ctz64(_unsafeToUint64(lsb));
-            if (((lsb >> 64) & type(uint64).max) != 0)  return _ctz64(_unsafeToUint64(lsb >> 64)) + 64;
-            if (((lsb >> 128) & type(uint64).max) != 0) return _ctz64(_unsafeToUint64(lsb >> 128)) + 128;
-                                                        return _ctz64(_unsafeToUint64(lsb >> 192)) + 192;
+            uint64 max64 = type(uint64).max;
+            if ((lsb & max64) != 0)          return _ctz64(_unsafeToUint64(lsb));
+            if (((lsb >> 64) & max64) != 0)  return _ctz64(_unsafeToUint64(lsb >> 64)) + 64;
+            if (((lsb >> 128) & max64) != 0) return _ctz64(_unsafeToUint64(lsb >> 128)) + 128;
+                                             return _ctz64(_unsafeToUint64(lsb >> 192)) + 192;
         }
     }
 
@@ -39,6 +42,12 @@ library LibBitmap {
         uint256 lsb = bitmap & (~bitmap + 1);
         index = _lsbIndex(lsb);
         nextBitmap = bitmap ^ lsb;
+    }
+
+    function getFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
+        uint256 free = ~bitmap & (bitmap + 1);
+        if (free == 0) revert NoFreeSlots();
+        index = _lsbIndex(free);
     }
 
     function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {

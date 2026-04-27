@@ -9,5 +9,7 @@ interface IObservability {
 
     function getFacetEntries() external view returns (Facet[] memory result);
 
-    // function getBitmap() external view returns (uint256);
+    function getFacetAt(uint8 index) external view returns (address);
+
+    function getFirstFreeSlot() external view returns (uint8);
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-struct FacetStorage {
+struct CentoStorage {
     address[256] facets;
     uint256 indexBitmap;
     address contractOwner;
