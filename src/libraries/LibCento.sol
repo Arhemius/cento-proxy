@@ -3,6 +3,7 @@ pragma solidity ^0.8.29;
 
 import { FacetStorage } from "../structs/FacetStorage.sol";
 import { Facet } from "../structs/Facet.sol";
+import { LibBitmap } from "./LibBitmap.sol";
 
 library LibCento {
 
@@ -15,6 +16,13 @@ library LibCento {
     event FacetUpdated(uint256 indexed index, address oldFacet, address newFacet);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
+    error SameFacetReplacement(uint8 index, address facet);
+    error ZeroFacetForEmptySlot();
+    error RouterAsFacetForbidden();
+    error NotContractOwner(address caller);
+    error NoCodeOrEOA(address target);
+    error Is7702EOA(address account);
+
     function loadBaseSlot() internal pure returns (FacetStorage storage fs) {
         bytes32 position = BASE_SLOT;
         assembly {
@@ -23,24 +31,26 @@ library LibCento {
     }
 
     function setFacet(FacetStorage storage fs, uint8 index, address facet) internal {
-        uint256 mask = uint256(1) << index;
-        bool occupied = (fs.indexBitmap & mask) != 0;
-        require(occupied || facet != address(0), "Cento: Invalid transition");
-        require(facet != address(this), "Cento: Cannot register router as facet");
-        address old = fs.facets[index];
+        uint256 bitmap = fs.indexBitmap;
+        bool occupied = LibBitmap.isSlotOccupied(bitmap, index);
+        if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
+        if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
-            require(old != facet, "Cento: Can't replace facet with same facet");
             isNotEoa(facet);
-            fs.facets[index] = facet;
             if (occupied) {
+                address old = fs.facets[index];
+                if (old == facet) revert SameFacetReplacement(index, facet);
+                fs.facets[index] = facet;
                 emit FacetUpdated(index, old, facet);
             } else {
-                fs.indexBitmap |= mask;
+                fs.facets[index] = facet;
+                fs.indexBitmap = LibBitmap.fillSlotAt(bitmap, index);
                 emit FacetAdded(index, facet);
             }
-        } else if (occupied) {
-            fs.indexBitmap &= ~mask;
-            fs.facets[index] = address(0);
+        } else {
+            address old = fs.facets[index];
+            fs.facets[index] = facet;
+            fs.indexBitmap = LibBitmap.clearSlotAt(bitmap, index);
             emit FacetRemoved(index, old);
         }
     }
@@ -48,14 +58,15 @@ library LibCento {
     function setInterface(FacetStorage storage fs, bytes4 interfaceType, bool enabled) internal {
         fs.supportedInterfaces[interfaceType] = enabled;
         if (enabled) emit InterfaceAdded(interfaceType);
-        else  emit InterfaceRemoved(interfaceType);
+        else         emit InterfaceRemoved(interfaceType);
     }
 
     function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory removeI) internal {
         FacetStorage storage fs = loadBaseSlot();
-        for (uint256 i = 0; i < setF.length; i++)     setFacet(fs, setF[i].index, setF[i].facet);
-        for (uint256 i = 0; i < addI.length; i++)     setInterface(fs, addI[i], true);
-        for (uint256 i = 0; i < removeI.length; i++)  setInterface(fs, removeI[i], false);
+        uint256 i;
+        for (     ; i < setF.length; i++)     setFacet(fs, setF[i].index, setF[i].facet);
+        for (i = 0; i < addI.length; i++)     setInterface(fs, addI[i], true);
+        for (i = 0; i < removeI.length; i++)  setInterface(fs, removeI[i], false);
     }
 
     function contractOwner() internal view returns (address owner_) {
@@ -64,7 +75,7 @@ library LibCento {
     }
     
     function enforceIsContractOwner() internal view {
-        require(msg.sender == loadBaseSlot().contractOwner, "Cento: Must be contract owner");
+        if (msg.sender != loadBaseSlot().contractOwner) revert NotContractOwner(msg.sender);
     }
 
     function setContractOwner(address _newOwner) internal {
@@ -79,11 +90,11 @@ library LibCento {
         assembly {
             size := extcodesize(a)
         }
-        require(size > 0, "Cento: No code / EOA");
+        if (size == 0) revert NoCodeOrEOA(a);
         bytes3 prefix;
         assembly {
             extcodecopy(a, prefix, 0, 3)
         }
-        require(prefix != 0xef0100, "Cento: Facet is an EIP-7702 EOA");
+        if (prefix != 0xef0100) revert Is7702EOA(a);
     }
 }

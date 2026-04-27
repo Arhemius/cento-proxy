@@ -7,6 +7,8 @@ contract CentoControllers {
     
     uint8 constant ERC165_INDEX = 0;
 
+    function supportsInterface(bytes4) external returns (bool) { delegate(ERC165_INDEX); }
+
     function delegate(uint8 index) private {
         assembly {
             let facet := sload(add(BASE_SLOT, index))
@@ -21,6 +23,4 @@ contract CentoControllers {
             return(0, returndatasize())
         }
     }
-
-    function supportsInterface(bytes4) external returns (bool) { delegate(ERC165_INDEX); }
 }
