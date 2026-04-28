@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.29;
+pragma solidity ^0.8.33;
 
 import { LibCento } from "../libraries/LibCento.sol";
 import { LibBitmap } from "../libraries/LibBitmap.sol";
@@ -10,7 +10,7 @@ import { IObservability } from "../interfaces/IObservability.sol";
 
 contract Observability is IERC165, IObservability {
 
-    function getFacets() external view returns (address[] memory result) {
+    function getFacets() external override view returns (address[] memory result) {
         CentoStorage storage cs = LibCento.loadBaseSlot();
         uint256 bitmap = cs.indexBitmap;
         result = new address[](LibBitmap.countFilledSlots(bitmap));
@@ -22,7 +22,7 @@ contract Observability is IERC165, IObservability {
         }
     }
 
-    function getFacetEntries() external view returns (Facet[] memory result) {
+    function getFacetEntries() external override view returns (Facet[] memory result) {
         CentoStorage storage cs = LibCento.loadBaseSlot();
         uint256 bitmap = cs.indexBitmap;
         result = new Facet[](LibBitmap.countFilledSlots(bitmap));
@@ -34,12 +34,12 @@ contract Observability is IERC165, IObservability {
         }
     }
 
-    function getFacetAt(uint8 index) external view returns (address facet) {
+    function getFacetAt(uint8 index) external override view returns (address facet) {
         CentoStorage storage cs = LibCento.loadBaseSlot();
         facet = cs.facets[index];
     }
 
-    function getFirstFreeSlot() external view returns (uint8 index) {
+    function getFirstFreeSlot() external override view returns (uint8 index) {
         CentoStorage storage cs = LibCento.loadBaseSlot();
         index = LibBitmap.getFirstEmptySlot(cs.indexBitmap);
         

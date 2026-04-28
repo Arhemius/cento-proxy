@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.29;
+pragma solidity ^0.8.33;
 
 library LibBitmap {
     
-    uint256 internal constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
-    bytes32 internal constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
-    bytes32 internal constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
+    uint256 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
+    bytes32 private constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
+    bytes32 private constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
 
     error NoFreeSlots();
 
@@ -53,7 +53,6 @@ library LibBitmap {
     function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {
         for (; bitmap != 0; bitmap &= (bitmap - 1)) count++;
     }
-
 
     function _mask(uint8 index) private pure returns (uint256) {
         return uint256(1) << index;

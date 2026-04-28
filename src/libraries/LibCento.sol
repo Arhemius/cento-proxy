@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.29;
+pragma solidity ^0.8.33;
 
 import { CentoStorage } from "../structs/CentoStorage.sol";
 import { Facet } from "../structs/Facet.sol";
@@ -30,13 +30,13 @@ library LibCento {
         }
     }
 
-    function setFacet(CentoStorage storage cs, uint8 index, address facet) internal {
+    function _setFacet(CentoStorage storage cs, uint8 index, address facet) private {
         uint256 bitmap = cs.indexBitmap;
         bool occupied = LibBitmap.isSlotOccupied(bitmap, index);
         if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
-            isNotEoa(facet);
+            _isNotEoa(facet);
             if (occupied) {
                 address old = cs.facets[index];
                 if (old == facet) revert SameFacetReplacement(index, facet);
@@ -55,7 +55,7 @@ library LibCento {
         }
     }
 
-    function setInterface(CentoStorage storage cs, bytes4 interfaceType, bool enabled) internal {
+    function _setInterface(CentoStorage storage cs, bytes4 interfaceType, bool enabled) private {
         cs.supportedInterfaces[interfaceType] = enabled;
         if (enabled) emit InterfaceAdded(interfaceType);
         else         emit InterfaceRemoved(interfaceType);
@@ -64,9 +64,9 @@ library LibCento {
     function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory removeI) internal {
         CentoStorage storage cs = loadBaseSlot();
         uint256 i;
-        for (     ; i < setF.length; i++)     setFacet(cs, setF[i].index, setF[i].facet);
-        for (i = 0; i < addI.length; i++)     setInterface(cs, addI[i], true);
-        for (i = 0; i < removeI.length; i++)  setInterface(cs, removeI[i], false);
+        for (     ; i < setF.length; i++)     _setFacet(cs, setF[i].index, setF[i].facet);
+        for (i = 0; i < addI.length; i++)     _setInterface(cs, addI[i], true);
+        for (i = 0; i < removeI.length; i++)  _setInterface(cs, removeI[i], false);
     }
 
     function contractOwner() internal view returns (address owner_) {
@@ -85,7 +85,7 @@ library LibCento {
         emit OwnershipTransferred(previousOwner, _newOwner);
     }
 
-    function isNotEoa(address a) internal view {
+    function _isNotEoa(address a) private view {
         uint32 size;
         assembly {
             size := extcodesize(a)
