@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.33;
+pragma solidity ^0.8.29;
 
-import { CentoStorage } from "../structs/CentoStorage.sol";
+import { CentoStorage as CS } from "../structs/CentoStorage.sol";
 import { Facet } from "../structs/Facet.sol";
-import { LibBitmap } from "./LibBitmap.sol";
+import { LibBitmap as lb } from "./LibBitmap.sol";
 
 library LibCento {
+    using lb for uint256;
 
     bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
     event InterfaceAdded(bytes4 interfaceType);
     event InterfaceRemoved(bytes4 interfaceType);
-    event FacetAdded(uint256 indexed index, address facet);
-    event FacetRemoved(uint256 indexed index, address old);
-    event FacetUpdated(uint256 indexed index, address oldFacet, address newFacet);
+    event FacetAdded(uint8 indexed index, address facet);
+    event FacetRemoved(uint8 indexed index, address old);
+    event FacetUpdated(uint8 indexed index, address oldFacet, address newFacet);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     error SameFacetReplacement(uint8 index, address facet);
@@ -23,16 +24,16 @@ library LibCento {
     error NoCodeOrEOA(address target);
     error Is7702EOA(address account);
 
-    function loadBaseSlot() internal pure returns (CentoStorage storage cs) {
+    function _cs() internal pure returns (CS storage cs) {
         bytes32 position = BASE_SLOT;
         assembly {
             cs.slot := position
         }
     }
 
-    function _setFacet(CentoStorage storage cs, uint8 index, address facet) private {
+    function _setFacet(CS storage cs, uint8 index, address facet) private {
         uint256 bitmap = cs.indexBitmap;
-        bool occupied = LibBitmap.isSlotOccupied(bitmap, index);
+        bool occupied = bitmap.isSlotOccupied(index);
         if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
@@ -44,42 +45,42 @@ library LibCento {
                 emit FacetUpdated(index, old, facet);
             } else {
                 cs.facets[index] = facet;
-                cs.indexBitmap = LibBitmap.fillSlotAt(bitmap, index);
+                cs.indexBitmap = bitmap.fillSlotAt(index);
                 emit FacetAdded(index, facet);
             }
         } else {
             address old = cs.facets[index];
             cs.facets[index] = facet;
-            cs.indexBitmap = LibBitmap.clearSlotAt(bitmap, index);
+            cs.indexBitmap = bitmap.clearSlotAt(index);
             emit FacetRemoved(index, old);
         }
     }
 
-    function _setInterface(CentoStorage storage cs, bytes4 interfaceType, bool enabled) private {
+    function _setInterface(CS storage cs, bytes4 interfaceType, bool enabled) private {
         cs.supportedInterfaces[interfaceType] = enabled;
         if (enabled) emit InterfaceAdded(interfaceType);
         else         emit InterfaceRemoved(interfaceType);
     }
 
     function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory removeI) internal {
-        CentoStorage storage cs = loadBaseSlot();
-        uint256 i;
+        CS storage cs = _cs();
+        uint16 i;
         for (     ; i < setF.length; i++)     _setFacet(cs, setF[i].index, setF[i].facet);
         for (i = 0; i < addI.length; i++)     _setInterface(cs, addI[i], true);
         for (i = 0; i < removeI.length; i++)  _setInterface(cs, removeI[i], false);
     }
 
     function contractOwner() internal view returns (address owner_) {
-        CentoStorage storage cs = loadBaseSlot();
+        CS storage cs = _cs();
         owner_ = cs.contractOwner;
     }
     
     function enforceIsContractOwner() internal view {
-        if (msg.sender != loadBaseSlot().contractOwner) revert NotContractOwner(msg.sender);
+        if (msg.sender != _cs().contractOwner) revert NotContractOwner(msg.sender);
     }
 
     function setContractOwner(address _newOwner) internal {
-        CentoStorage storage cs = loadBaseSlot();
+        CS storage cs = _cs();
         address previousOwner = cs.contractOwner;
         cs.contractOwner = _newOwner;
         emit OwnershipTransferred(previousOwner, _newOwner);

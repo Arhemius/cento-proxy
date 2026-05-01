@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.33;
+pragma solidity ^0.8.29;
 
 library LibBitmap {
     
-    uint256 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
+    uint64 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
     bytes32 private constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
     bytes32 private constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
 
@@ -18,10 +18,12 @@ library LibBitmap {
     function _ctz64(uint64 x) private pure returns (uint8 r) {
         unchecked {
             // assert(x != 0);
-            uint256 idx = (uint256(x) * DEBRUIJN64_MAGIC) >> 58;
+            uint64 prod = x * DEBRUIJN64_MAGIC;
+            uint256 idx = uint256(prod >> 58);
             bytes32 word = idx < 32 ? DEBRUIJN64_TABLE_0 : DEBRUIJN64_TABLE_1;
             assembly {
-                r := byte(and(idx, 31), word)
+                let pos := sub(31, and(idx, 31))
+                r := byte(pos, word)
             }
         }
     }
@@ -39,13 +41,19 @@ library LibBitmap {
     }
 
     function popFirstFilledSlot(uint256 bitmap) internal pure returns (uint256 nextBitmap, uint8 index) {
-        uint256 lsb = bitmap & (~bitmap + 1);
+        uint256 lsb;
+        unchecked {
+            lsb = bitmap & (~bitmap + 1);
+        } 
         index = _lsbIndex(lsb);
         nextBitmap = bitmap ^ lsb;
     }
 
     function getFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
-        uint256 free = ~bitmap & (bitmap + 1);
+        uint256 free;
+        unchecked {
+            free = ~bitmap & (bitmap + 1);
+        }
         if (free == 0) revert NoFreeSlots();
         index = _lsbIndex(free);
     }

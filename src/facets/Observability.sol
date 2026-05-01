@@ -1,52 +1,52 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.33;
+pragma solidity ^0.8.29;
 
-import { LibCento } from "../libraries/LibCento.sol";
-import { LibBitmap } from "../libraries/LibBitmap.sol";
-import { CentoStorage } from "../structs/CentoStorage.sol";
+import { LibCento as lc } from "../libraries/LibCento.sol";
+import { LibBitmap as lb } from "../libraries/LibBitmap.sol";
+import { CentoStorage as CS } from "../structs/CentoStorage.sol";
 import { Facet } from "../structs/Facet.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
 import { IObservability } from "../interfaces/IObservability.sol";
 
 contract Observability is IERC165, IObservability {
+    using lb for uint256;
 
     function getFacets() external override view returns (address[] memory result) {
-        CentoStorage storage cs = LibCento.loadBaseSlot();
+        CS storage cs = lc._cs();
         uint256 bitmap = cs.indexBitmap;
-        result = new address[](LibBitmap.countFilledSlots(bitmap));
+        result = new address[](bitmap.countFilledSlots());
         uint8 i;
         uint8 index;
         while (bitmap != 0) {
-            (bitmap, index) = LibBitmap.popFirstFilledSlot(bitmap);
+            (bitmap, index) = bitmap.popFirstFilledSlot();
             result[i++] = cs.facets[index];
         }
     }
 
     function getFacetEntries() external override view returns (Facet[] memory result) {
-        CentoStorage storage cs = LibCento.loadBaseSlot();
+        CS storage cs = lc._cs();
         uint256 bitmap = cs.indexBitmap;
-        result = new Facet[](LibBitmap.countFilledSlots(bitmap));
+        result = new Facet[](bitmap.countFilledSlots());
         uint8 i;
         uint8 index;
         while (bitmap != 0) {
-            (bitmap, index) = LibBitmap.popFirstFilledSlot(bitmap);
+            (bitmap, index) = bitmap.popFirstFilledSlot();
             result[i++] = Facet({index: index, facet: cs.facets[index]});
         }
     }
 
     function getFacetAt(uint8 index) external override view returns (address facet) {
-        CentoStorage storage cs = LibCento.loadBaseSlot();
+        CS storage cs = lc._cs();
         facet = cs.facets[index];
     }
 
     function getFirstFreeSlot() external override view returns (uint8 index) {
-        CentoStorage storage cs = LibCento.loadBaseSlot();
-        index = LibBitmap.getFirstEmptySlot(cs.indexBitmap);
-        
+        CS storage cs = lc._cs();
+        index = cs.indexBitmap.getFirstEmptySlot();
     }
 
     function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
-        CentoStorage storage cs = LibCento.loadBaseSlot();
+        CS storage cs = lc._cs();
         return cs.supportedInterfaces[_interfaceId];
     }
 }
