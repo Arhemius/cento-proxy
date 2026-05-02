@@ -65,12 +65,4 @@ library ReferenceBitmap {
             result.slots[i] = (bitmap & (uint256(1) << i)) != 0;
         }
     }
-    
-    function toUint256(Bitmap memory self) internal pure returns (uint256 result) {
-        for (uint16 i = 0; i < 256; i++) {
-            if (self.slots[i]) {
-                result |= (uint256(1) << i);
-            }
-        }
-    }
 }

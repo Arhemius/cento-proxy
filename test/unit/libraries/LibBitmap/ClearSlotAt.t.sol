@@ -2,6 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
+import {LibBitmap} from "../../../../src/libraries/LibBitmap.sol";
 
 /**
  * @title ClearSlotAt Tests
@@ -13,6 +14,7 @@ import {LibBitmapAssert} from "./AAA/Assert.sol";
  * - Idempotent: Clearing already-empty slot is no-op
  */
 contract ClearSlotAtTest is LibBitmapAssert {
+    using LibBitmap for uint256;
     
     function test_Clear_FullBitmap_ClearsBit() public pure {
         uint256 bitmap = given_FullBitmap();
@@ -47,5 +49,49 @@ contract ClearSlotAtTest is LibBitmapAssert {
     function testFuzz_Oracle_Clear(uint256 bitmap, uint8 index) public pure {
         uint256 next = when_ClearSlotAt(bitmap, index);
         then_MatchesOracle_ClearSlotAt(bitmap, index, next);
+    }
+    
+    // === Boundary Tests ===
+    
+    function test_Clear_BoundaryIndices() public pure {
+        uint256 bitmap = given_FullBitmap();
+        bitmap = when_ClearSlotAt(bitmap, 0);
+        then_SlotEmpty(bitmap, 0);
+        bitmap = when_ClearSlotAt(bitmap, 255);
+        then_SlotEmpty(bitmap, 255);
+        bitmap = when_ClearSlotAt(bitmap, 64);
+        then_SlotEmpty(bitmap, 64);
+        bitmap = when_ClearSlotAt(bitmap, 128);
+        then_SlotEmpty(bitmap, 128);
+        bitmap = when_ClearSlotAt(bitmap, 192);
+        then_SlotEmpty(bitmap, 192);
+    }
+    
+    // === Transition Tests ===
+    
+    function test_Clear_Transition_ClearFillClear() public pure {
+        uint256 bitmap = given_FullBitmap();
+        bitmap = when_ClearSlotAt(bitmap, 42);
+        then_SlotEmpty(bitmap, 42);
+        bitmap = bitmap.fillSlotAt(42);
+        then_SlotOccupied(bitmap, 42);
+        bitmap = when_ClearSlotAt(bitmap, 42);
+        then_SlotEmpty(bitmap, 42);
+    }
+    
+    function test_Clear_Transition_SequentialClearsPreserveOrder() public pure {
+        uint256 bitmap = given_FullBitmap();
+        uint8[] memory indices = new uint8[](5);
+        indices[0] = 10;
+        indices[1] = 50;
+        indices[2] = 100;
+        indices[3] = 200;
+        indices[4] = 255;
+        for (uint256 i = 0; i < indices.length; i++) {
+            bitmap = when_ClearSlotAt(bitmap, indices[i]);
+        }
+        for (uint256 i = 0; i < indices.length; i++) {
+            then_SlotEmpty(bitmap, indices[i]);
+        }
     }
 }

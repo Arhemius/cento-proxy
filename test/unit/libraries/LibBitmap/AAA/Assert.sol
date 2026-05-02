@@ -23,6 +23,13 @@ abstract contract LibBitmapAssert is LibBitmapAct {
         assertEq(actual, expected, "Bitmap mismatch");
     }
     
+    function then_BitmapMatchesReference(uint256 actualBitmap, ReferenceBitmap.Bitmap memory expected) internal pure {
+        for (uint16 i = 0; i < 256; i++) {
+            bool actualSlot = ((actualBitmap >> i) & 1) != 0;
+            assertEq(actualSlot, expected.slots[i], "Oracle: bitmap mismatch");
+        }
+    }
+    
     function then_CountIs(uint16 actual, uint16 expected) internal pure {
         assertEq(actual, expected, "Count mismatch");
     }
@@ -61,7 +68,7 @@ abstract contract LibBitmapAssert is LibBitmapAct {
         ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         (ReferenceBitmap.Bitmap memory refNext, uint8 refIndex) = ref.popFirstFilledSlot();
         assertEq(actualIndex, refIndex, "Oracle: index mismatch");
-        assertEq(actualNextBitmap, refNext.toUint256(), "Oracle: bitmap mismatch");
+        then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
     
     function then_MatchesOracle_GetFirstEmptySlot(uint256 bitmap, uint8 actualIndex) internal pure {
@@ -85,12 +92,12 @@ abstract contract LibBitmapAssert is LibBitmapAct {
     function then_MatchesOracle_FillSlotAt(uint256 bitmap, uint8 index, uint256 actualNextBitmap) internal pure {
         ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         ReferenceBitmap.Bitmap memory refNext = ref.fillSlotAt(index);
-        assertEq(actualNextBitmap, refNext.toUint256(), "Oracle: bitmap mismatch");
+        then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
     
     function then_MatchesOracle_ClearSlotAt(uint256 bitmap, uint8 index, uint256 actualNextBitmap) internal pure {
         ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         ReferenceBitmap.Bitmap memory refNext = ref.clearSlotAt(index);
-        assertEq(actualNextBitmap, refNext.toUint256(), "Oracle: bitmap mismatch");
+        then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
 } 

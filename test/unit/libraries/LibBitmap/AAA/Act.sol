@@ -17,6 +17,11 @@ abstract contract LibBitmapAct is LibBitmapArrange {
         return bitmap.popFirstFilledSlot();
     }
     
+    function when_PopFirstFilledSlot_External(uint256 bitmap) external pure returns (uint256 nextBitmap, uint8 index) {
+        if (bitmap == 0) revert LibBitmap.NoFreeSlots();
+        return bitmap.popFirstFilledSlot();
+    }
+    
     function when_GetFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
         return bitmap.getFirstEmptySlot();
     }

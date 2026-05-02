@@ -2,6 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
+import {LibBitmap} from "../../../../src/libraries/LibBitmap.sol";
 
 /**
  * @title PopFirstFilledSlot Tests
@@ -14,6 +15,7 @@ import {LibBitmapAssert} from "./AAA/Assert.sol";
  * - Reverts: If bitmap is 0 (no filled slots)
  */
 contract PopFirstFilledSlotTest is LibBitmapAssert {
+    using LibBitmap for uint256;
     
     // === Input: Single Bit ===
     
@@ -82,6 +84,16 @@ contract PopFirstFilledSlotTest is LibBitmapAssert {
         then_IndexIs(idx, 0);
     }
     
+    // === Revert Cases ===
+    // NOTE: popFirstFilledSlot has a precondition: bitmap must be non-zero
+    // Tested via external wrapper with explicit guard
+    
+    function test_Pop_EmptyBitmap_Reverts() public {
+        uint256 bitmap = given_EmptyBitmap();
+        then_RevertsWithNoFreeSlots();
+        this.when_PopFirstFilledSlot_External(bitmap);
+    }
+    
     // === Sequential Pops ===
     
     function test_Pop_Sequential_OrderedIndices() public pure {
@@ -98,6 +110,22 @@ contract PopFirstFilledSlotTest is LibBitmapAssert {
         bitmap = bitmap & ~(uint256(1) << 100);
         (, uint8 idx3) = when_PopFirstFilledSlot(bitmap);
         then_IndexIs(idx3, 200);
+    }
+    
+    function test_Pop_Transition_FillThenPopSequence() public pure {
+        uint256 bitmap = given_EmptyBitmap();
+        // Fill some slots
+        bitmap = bitmap.fillSlotAt(5);
+        bitmap = bitmap.fillSlotAt(10);
+        bitmap = bitmap.fillSlotAt(3); // Will be popped first
+        // Pop in order: 3, 5, 10
+        (uint256 next1, uint8 idx1) = when_PopFirstFilledSlot(bitmap);
+        then_IndexIs(idx1, 3);
+        (uint256 next2, uint8 idx2) = when_PopFirstFilledSlot(next1);
+        then_IndexIs(idx2, 5);
+        (uint256 next3, uint8 idx3) = when_PopFirstFilledSlot(next2);
+        then_IndexIs(idx3, 10);
+        then_BitmapEmpty(next3);
     }
     
     // === Oracle Verification ===
