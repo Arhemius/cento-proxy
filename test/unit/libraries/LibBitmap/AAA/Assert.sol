@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAct} from "./Act.sol";
 import {LibBitmap} from "../../../../../src/libraries/LibBitmap.sol";
-import {ReferenceBitmap} from "../../../../_support/oracles/ReferenceBitmap.sol";
+import {ReferenceBitmap as RB} from "../../../../_support/oracles/ReferenceBitmap.sol";
 
 /**
  * @title LibBitmap Assert Layer
@@ -11,7 +11,7 @@ import {ReferenceBitmap} from "../../../../_support/oracles/ReferenceBitmap.sol"
  */
 abstract contract LibBitmapAssert is LibBitmapAct {
     using LibBitmap for uint256;
-    using ReferenceBitmap for ReferenceBitmap.Bitmap;
+    using RB for RB.Bitmap;
     
     // === Output Verification ===
     
@@ -23,10 +23,21 @@ abstract contract LibBitmapAssert is LibBitmapAct {
         assertEq(actual, expected, "Bitmap mismatch");
     }
     
-    function then_BitmapMatchesReference(uint256 actualBitmap, ReferenceBitmap.Bitmap memory expected) internal pure {
+    function then_BitmapMatchesReference(uint256 actualBitmap, RB.Bitmap memory expected) internal pure {
         for (uint16 i = 0; i < 256; i++) {
             bool actualSlot = ((actualBitmap >> i) & 1) != 0;
             assertEq(actualSlot, expected.slots[i], "Oracle: bitmap mismatch");
+        }
+    }
+
+    function then_PopSequenceIs(uint8[] memory actual, uint8[] memory expected) internal pure {
+        assertEq(actual.length, expected.length, "Pop sequence length mismatch");
+        for (uint256 i = 0; i < expected.length; i++) {
+            assertEq(
+                actual[i],
+                expected[i],
+                string.concat("Pop sequence mismatch at position ", vm.toString(i))
+            );
         }
     }
     
@@ -61,43 +72,50 @@ abstract contract LibBitmapAssert is LibBitmapAct {
     function then_RevertsWithNoFreeSlots() internal {
         vm.expectRevert(LibBitmap.NoFreeSlots.selector);
     }
+
+    function then_RevertsWithNoFreeSlots_Call(bool success, bytes memory data) internal pure {
+        assertGe(data.length, 4);
+        bytes4 selector = _toSelectorUnsafe(data);
+        assertEq(selector, LibBitmap.NoFreeSlots.selector);
+        assertFalse(success, "Call should have failed");
+    }
     
     // === Oracle Verification ===
     
     function then_MatchesOracle_PopFirstFilledSlot(uint256 bitmap, uint256 actualNextBitmap, uint8 actualIndex) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
-        (ReferenceBitmap.Bitmap memory refNext, uint8 refIndex) = ref.popFirstFilledSlot();
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        (RB.Bitmap memory refNext, uint8 refIndex) = ref.popFirstFilledSlot();
         assertEq(actualIndex, refIndex, "Oracle: index mismatch");
         then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
     
     function then_MatchesOracle_GetFirstEmptySlot(uint256 bitmap, uint8 actualIndex) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         uint8 refIndex = ref.getFirstEmptySlot();
         assertEq(actualIndex, refIndex, "Oracle: index mismatch");
     }
     
     function then_MatchesOracle_CountFilledSlots(uint256 bitmap, uint16 actualCount) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         uint16 refCount = ref.countFilledSlots();
         assertEq(actualCount, refCount, "Oracle: count mismatch");
     }
     
     function then_MatchesOracle_IsSlotOccupied(uint256 bitmap, uint8 index, bool actualOccupied) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
         bool refOccupied = ref.isSlotOccupied(index);
         assertEq(actualOccupied, refOccupied, "Oracle: occupancy mismatch");
     }
     
     function then_MatchesOracle_FillSlotAt(uint256 bitmap, uint8 index, uint256 actualNextBitmap) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
-        ReferenceBitmap.Bitmap memory refNext = ref.fillSlotAt(index);
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        RB.Bitmap memory refNext = ref.fillSlotAt(index);
         then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
     
     function then_MatchesOracle_ClearSlotAt(uint256 bitmap, uint8 index, uint256 actualNextBitmap) internal pure {
-        ReferenceBitmap.Bitmap memory ref = given_ReferenceBitmap(bitmap);
-        ReferenceBitmap.Bitmap memory refNext = ref.clearSlotAt(index);
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        RB.Bitmap memory refNext = ref.clearSlotAt(index);
         then_BitmapMatchesReference(actualNextBitmap, refNext);
     }
 } 

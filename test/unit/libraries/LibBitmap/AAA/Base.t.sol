@@ -24,4 +24,10 @@ abstract contract LibBitmapTest is Test {
             r := x
         }
     }
+
+    function _toSelectorUnsafe(bytes memory x) internal pure returns (bytes4 r) {
+        assembly {
+            r := mload(add(x, 32))
+        }
+    }
 }

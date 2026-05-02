@@ -3,6 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapArrange} from "./Arrange.sol";
 import {LibBitmap} from "../../../../../src/libraries/LibBitmap.sol";
+import {ReferenceBitmap as RB} from "../../../../_support/oracles/ReferenceBitmap.sol";
 
 /**
  * @title LibBitmap Act Layer
@@ -10,6 +11,7 @@ import {LibBitmap} from "../../../../../src/libraries/LibBitmap.sol";
  */
 abstract contract LibBitmapAct is LibBitmapArrange {
     using LibBitmap for uint256;
+    using RB for RB.Bitmap;
     
     // === Actions ===
     
@@ -18,8 +20,38 @@ abstract contract LibBitmapAct is LibBitmapArrange {
     }
     
     function when_PopFirstFilledSlot_External(uint256 bitmap) external pure returns (uint256 nextBitmap, uint8 index) {
-        if (bitmap == 0) revert LibBitmap.NoFreeSlots();
         return bitmap.popFirstFilledSlot();
+    }
+
+    function when_PopMultiple(uint256 bitmap, uint16 count) internal pure returns (uint8[] memory indices, uint256 finalBitmap) {
+        indices = new uint8[](count);
+        finalBitmap = bitmap;
+        for (uint16 i = 0; i < count; i++) {
+            (uint256 nextBitmap, uint8 index) = finalBitmap.popFirstFilledSlot();
+            indices[i] = index;
+            finalBitmap = nextBitmap;
+        }
+    }
+
+    function when_Oracle_PopFirstFilledSlot_External(uint256 bitmap) 
+        external pure returns (RB.Bitmap memory self, uint8 index) {
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        return ref.popFirstFilledSlot();
+    }
+
+    function when_Oracle_PopFirstFilledSlot_Fails(uint256 bitmap) internal returns (bool success, bytes memory data) {
+        return address(this).call(
+            abi.encodeWithSelector(
+                this.when_Oracle_PopFirstFilledSlot_External.selector,
+                bitmap
+            )
+        );
+    }
+
+    function when_Oracle_GetFirstEmptySlot_External(uint256 bitmap) 
+        external pure returns (uint8 index) {
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        return ref.getFirstEmptySlot();
     }
     
     function when_GetFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {

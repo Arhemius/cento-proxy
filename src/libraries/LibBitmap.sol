@@ -43,6 +43,7 @@ library LibBitmap {
     function popFirstFilledSlot(uint256 bitmap) internal pure returns (uint256 nextBitmap, uint8 index) {
         // PRECONDITION: bitmap must be non-zero
         // Callers are responsible for ensuring this condition
+        if (bitmap == 0) revert NoFreeSlots();
         uint256 lsb;
         unchecked {
             lsb = bitmap & (~bitmap + 1);

@@ -71,7 +71,9 @@ contract PopFirstFilledSlotTest is LibBitmapAssert {
         indices[0] = 10;
         indices[1] = 20;
         uint256 bitmap = given_MultipleBits(indices);
+        // vm.startSnapshotGas("PopFirstFilledSlot");
         (uint256 next,) = when_PopFirstFilledSlot(bitmap);
+        // uint256 gas = vm.stopSnapshotGas(); gas = gas;
         then_SlotEmpty(next, 10);
         then_SlotOccupied(next, 20);
     }
@@ -93,23 +95,28 @@ contract PopFirstFilledSlotTest is LibBitmapAssert {
         then_RevertsWithNoFreeSlots();
         this.when_PopFirstFilledSlot_External(bitmap);
     }
+
+    function test_Oracle_Pop_EmptyBitmap_Reverts() public {
+        uint256 bitmap = given_EmptyBitmap();
+        (bool success, bytes memory data) = when_Oracle_PopFirstFilledSlot_Fails(bitmap);
+        then_RevertsWithNoFreeSlots_Call(success, data);
+    }
     
     // === Sequential Pops ===
     
     function test_Pop_Sequential_OrderedIndices() public pure {
-        uint8[] memory indices = new uint8[](3);
-        indices[0] = 200;
-        indices[1] = 10;
-        indices[2] = 100;
-        uint256 bitmap = given_MultipleBits(indices);
-        (, uint8 idx1) = when_PopFirstFilledSlot(bitmap);
-        then_IndexIs(idx1, 10);
-        bitmap = bitmap & ~(uint256(1) << 10); // Clear manually for test
-        (, uint8 idx2) = when_PopFirstFilledSlot(bitmap);
-        then_IndexIs(idx2, 100);
-        bitmap = bitmap & ~(uint256(1) << 100);
-        (, uint8 idx3) = when_PopFirstFilledSlot(bitmap);
-        then_IndexIs(idx3, 200);
+        uint8[] memory inputIndices = new uint8[](3);
+        inputIndices[0] = 200;
+        inputIndices[1] = 10;
+        inputIndices[2] = 100;
+        uint8[] memory expectedOrder = new uint8[](3);
+        expectedOrder[0] = 10;
+        expectedOrder[1] = 100;
+        expectedOrder[2] = 200;
+        uint256 bitmap = given_MultipleBits(inputIndices);
+        (uint8[] memory poppedIndices, uint256 finalBitmap) = when_PopMultiple(bitmap, 3);
+        then_PopSequenceIs(poppedIndices, expectedOrder);
+        then_BitmapEmpty(finalBitmap);
     }
     
     function test_Pop_Transition_FillThenPopSequence() public pure {

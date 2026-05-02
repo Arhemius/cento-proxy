@@ -27,7 +27,7 @@ library ReferenceBitmap {
                 return (nextBitmap, index);
             }
         }
-        revert("No filled slots");
+        revert NoFreeSlots();
     }
     
     function getFirstEmptySlot(Bitmap memory self) internal pure returns (uint8 index) {

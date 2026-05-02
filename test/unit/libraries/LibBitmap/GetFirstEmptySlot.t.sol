@@ -56,10 +56,16 @@ contract GetFirstEmptySlotTest is LibBitmapAssert {
     
     // === Error: Full Bitmap ===
 
-    function test_Empty_Revert_FullBitmap() public {
+    function test_Empty_FullBitmap_Reverts() public {
         uint256 bitmap = given_FullBitmap();
         then_RevertsWithNoFreeSlots();
         this.when_GetFirstEmptySlot_External(bitmap);
+    }
+
+    function test_Oracle_Empty_FullBitmap_Reverts() public {
+        uint256 bitmap = given_FullBitmap();
+        then_RevertsWithNoFreeSlots();
+        this.when_Oracle_GetFirstEmptySlot_External(bitmap);
     }
     
     // === Oracle Verification ===
