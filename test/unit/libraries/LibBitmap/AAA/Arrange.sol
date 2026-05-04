@@ -32,6 +32,7 @@ abstract contract LibBitmapArrange is LibBitmapTest {
     }
     
     function given_Range(uint8 start, uint8 end) internal pure returns (uint256 bitmap) {
+        assertLt(start, end, "Start index must be less than end index");
         for (uint16 i = start; i <= end; i++) {
             bitmap |= (uint256(1) << i);
         }

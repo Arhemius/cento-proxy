@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
+// import {LibBitmap} from "../../../src/libraries/LibBitmap.sol";
+
 /**
  * @title ReferenceBitmap
  * @notice Array-based reference implementation (OBVIOUSLY CORRECT)

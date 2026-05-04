@@ -23,16 +23,6 @@ abstract contract LibBitmapAct is LibBitmapArrange {
         return bitmap.popFirstFilledSlot();
     }
 
-    function when_PopMultiple(uint256 bitmap, uint16 count) internal pure returns (uint8[] memory indices, uint256 finalBitmap) {
-        indices = new uint8[](count);
-        finalBitmap = bitmap;
-        for (uint16 i = 0; i < count; i++) {
-            (uint256 nextBitmap, uint8 index) = finalBitmap.popFirstFilledSlot();
-            indices[i] = index;
-            finalBitmap = nextBitmap;
-        }
-    }
-
     function when_Oracle_PopFirstFilledSlot_External(uint256 bitmap) 
         external pure returns (RB.Bitmap memory self, uint8 index) {
         RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
@@ -48,10 +38,14 @@ abstract contract LibBitmapAct is LibBitmapArrange {
         );
     }
 
-    function when_Oracle_GetFirstEmptySlot_External(uint256 bitmap) 
-        external pure returns (uint8 index) {
-        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
-        return ref.getFirstEmptySlot();
+    function when_PopMultiple(uint256 bitmap, uint16 count) internal pure returns (uint8[] memory indices, uint256 finalBitmap) {
+        indices = new uint8[](count);
+        finalBitmap = bitmap;
+        for (uint16 i = 0; i < count; i++) {
+            (uint256 nextBitmap, uint8 index) = finalBitmap.popFirstFilledSlot();
+            indices[i] = index;
+            finalBitmap = nextBitmap;
+        }
     }
     
     function when_GetFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
@@ -60,6 +54,12 @@ abstract contract LibBitmapAct is LibBitmapArrange {
 
     function when_GetFirstEmptySlot_External(uint256 bitmap) external pure returns (uint8 index) {
         return bitmap.getFirstEmptySlot();
+    }
+
+    function when_Oracle_GetFirstEmptySlot_External(uint256 bitmap) 
+        external pure returns (uint8 index) {
+        RB.Bitmap memory ref = given_ReferenceBitmap(bitmap);
+        return ref.getFirstEmptySlot();
     }
     
     function when_CountFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {

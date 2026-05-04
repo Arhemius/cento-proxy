@@ -75,7 +75,7 @@ abstract contract LibBitmapAssert is LibBitmapAct {
 
     function then_RevertsWithNoFreeSlots_Call(bool success, bytes memory data) internal pure {
         assertGe(data.length, 4);
-        bytes4 selector = _toSelectorUnsafe(data);
+        bytes4 selector = _unsafeToSelector(data);
         assertEq(selector, LibBitmap.NoFreeSlots.selector);
         assertFalse(success, "Call should have failed");
     }
