@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
+import "./LibDebug.sol";
+
 library LibBitmap {
     
     uint64 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
@@ -15,9 +17,13 @@ library LibBitmap {
         }
     }
 
+    modifier onlySingleBit(uint256 x) {
+        if (Debug.ON) assert((x != 0) && (x & (x - 1)) == 0);
+        _;
+    }
+
     function _ctz64(uint64 x) private pure returns (uint8 r) {
         unchecked {
-            // assert(x != 0);
             uint64 prod = x * DEBRUIJN64_MAGIC;
             uint256 idx = uint256(prod >> 58);
             bytes32 word = idx < 32 ? DEBRUIJN64_TABLE_0 : DEBRUIJN64_TABLE_1;
@@ -28,10 +34,8 @@ library LibBitmap {
         }
     }
 
-    function _lsbIndex(uint256 lsb) private pure returns (uint8) {
+    function _lsbIndex(uint256 lsb) private pure onlySingleBit(lsb) returns (uint8) {
         unchecked {
-            // assert(lsb != 0);
-            // assert((lsb & (lsb - 1)) == 0);
             uint64 max64 = type(uint64).max;
             if ((lsb & max64) != 0)          return _ctz64(_unsafeToUint64(lsb));
             if (((lsb >> 64) & max64) != 0)  return _ctz64(_unsafeToUint64(lsb >> 64)) + 64;

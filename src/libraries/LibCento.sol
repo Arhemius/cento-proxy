@@ -62,12 +62,12 @@ library LibCento {
         else         emit InterfaceRemoved(interfaceType);
     }
 
-    function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory removeI) internal {
+    function atomicUpdate(Facet[] memory setF, bytes4[] memory addI, bytes4[] memory remI) internal {
         CS storage cs = _cs();
         uint16 i;
         for (     ; i < setF.length; i++)     _setFacet(cs, setF[i].index, setF[i].facet);
         for (i = 0; i < addI.length; i++)     _setInterface(cs, addI[i], true);
-        for (i = 0; i < removeI.length; i++)  _setInterface(cs, removeI[i], false);
+        for (i = 0; i < remI.length; i++)     _setInterface(cs, remI[i], false);
     }
 
     function contractOwner() internal view returns (address owner_) {
