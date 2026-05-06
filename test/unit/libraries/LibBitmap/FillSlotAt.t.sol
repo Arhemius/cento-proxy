@@ -63,7 +63,7 @@ contract FillSlotAtTest is LibBitmapAssert, Ops {
 
     // === Transition Tests ===
 
-    function test_Fill_Transition_FillClearFill() public view {
+    function test_Fill_Sequential_FillClearFill() public view {
         uint256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 42);
         then_SlotOccupied(bitmap, 42);
@@ -73,7 +73,7 @@ contract FillSlotAtTest is LibBitmapAssert, Ops {
         then_SlotOccupied(bitmap, 42);
     }
 
-    function test_Fill_Transition_SequentialFillsPreserveOrder() public view {
+    function test_Fill_Sequential_FillsPreserveOrder() public view {
         uint256 bitmap = given_EmptyBitmap();
         uint8[] memory indices = abi.encode(10, 50, 100, 200, 255).u8();
         for (uint256 i = 0; i < indices.length; i++) {
@@ -86,7 +86,7 @@ contract FillSlotAtTest is LibBitmapAssert, Ops {
 
     // === Interface Compliance (Fuzz Tests) ===
 
-    function testFuzz_FillSlotAt_Complies(uint256 bitmap, uint8 index) public view {
+    function testFuzz_Fill_Complies(uint256 bitmap, uint8 index) public view {
         then_CompliesWith_FillSlotAt(bitmap, index);
     }
 }

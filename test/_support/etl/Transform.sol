@@ -4,11 +4,6 @@ pragma solidity ^0.8.29;
 import { Op } from "./Constants.sol";
 
 library Transform {
-    /*//////////////////////////////////////////////////////////////
-                             USING FOR
-    //////////////////////////////////////////////////////////////*/
-
-    
 
     /*//////////////////////////////////////////////////////////////
                           CORE CONVERTERS
@@ -54,7 +49,7 @@ library Transform {
 
     function _call(Op op_, uint256 x, uint256 y, uint256 i) internal view returns (uint256 r) {
         (bool ok, bytes memory ret) = address(this).staticcall(
-                abi.encodeWithSelector(Op.unwrap(op_), x, y, i));
+            abi.encodeWithSelector(Op.unwrap(op_), x, y, i));
         require(ok, "op failed");
         r = abi.decode(ret, (uint256));
     }
@@ -67,7 +62,7 @@ library Transform {
     }
 
     /*//////////////////////////////////////////////////////////////
-                                MAP
+                          TRANSFORMATIONS
     //////////////////////////////////////////////////////////////*/
 
     function map(bytes memory data, Op op_, uint256 arg) internal view returns (bytes memory) {
@@ -77,10 +72,6 @@ library Transform {
         }
         return fromU256(arr);
     }
-
-    /*//////////////////////////////////////////////////////////////
-                               FILTER
-    //////////////////////////////////////////////////////////////*/
 
     function filter(bytes memory data, Op op_, uint256 arg) internal view returns (bytes memory) {
         uint256[] memory arr = u256(data);
@@ -99,10 +90,6 @@ library Transform {
         return fromU256(out);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                               REDUCE
-    //////////////////////////////////////////////////////////////*/
-
     function reduce(bytes memory data, Op op_, uint256 acc) internal view returns (uint256) {
         uint256[] memory arr = u256(data);
         for (uint i; i < arr.length; i++) {
@@ -110,10 +97,6 @@ library Transform {
         }
         return acc;
     }
-
-    /*//////////////////////////////////////////////////////////////
-                             FLAT MAP
-    //////////////////////////////////////////////////////////////*/
 
     function flatMap(bytes memory data, Op op_) internal view returns (bytes memory) {
         uint256[] memory arr = u256(data);
@@ -133,10 +116,6 @@ library Transform {
         return fromU256(out);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                               ZIP WITH
-    //////////////////////////////////////////////////////////////*/
-
     function zipWith(bytes memory a, bytes memory b, Op op_) internal view returns (bytes memory) {
         uint256[] memory X = u256(a);
         uint256[] memory Y = u256(b);
@@ -148,10 +127,6 @@ library Transform {
         return fromU256(out);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                               PROJECT
-    //////////////////////////////////////////////////////////////*/
-
     function project(bytes memory data, uint stride, uint field) internal pure returns (bytes memory) {
         uint256[] memory arr = u256(data);
         uint len = arr.length / stride;
@@ -161,10 +136,6 @@ library Transform {
         }
         return fromU256(out);
     }
-
-    /*//////////////////////////////////////////////////////////////
-                                SKIP
-    //////////////////////////////////////////////////////////////*/
 
     function skip(bytes memory data, uint n) internal pure returns (bytes memory) {
         uint256[] memory arr = u256(data);
@@ -176,10 +147,6 @@ library Transform {
         }
         return fromU256(out);
     }
-
-    /*//////////////////////////////////////////////////////////////
-                                 TAP
-    //////////////////////////////////////////////////////////////*/
 
     function tap(bytes memory data, Op op_) internal view returns (bytes memory) {
         uint256[] memory arr = u256(data);

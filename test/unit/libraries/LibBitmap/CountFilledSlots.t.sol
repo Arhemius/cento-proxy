@@ -50,7 +50,7 @@ contract CountFilledSlotsTest is LibBitmapAssert, Ops {
 
     // === Interface Compliance (Fuzz Tests) ===
 
-    function testFuzz_CountFilledSlots_Complies(uint256 bitmap) public view {
+    function testFuzz_Count_Complies(uint256 bitmap) public view {
         then_CompliesWith_CountFilledSlots(bitmap);
     }
 }

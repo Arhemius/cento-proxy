@@ -26,4 +26,4 @@ Op constant expand  = Op.wrap(bytes4(keccak256("_expand(uint256,uint256,uint256)
 Op constant sum     = Op.wrap(bytes4(keccak256("_sum(uint256,uint256,uint256)")));
 
 Op constant split   = Op.wrap(bytes4(keccak256("_split(uint256,uint256,uint256)")));
-Op constant dup     = Op.wrap(bytes4(keccak256("_duplicate(uint256,uint256,uint256)")));
+Op constant dup     = Op.wrap(bytes4(keccak256("_dup(uint256,uint256,uint256)")));

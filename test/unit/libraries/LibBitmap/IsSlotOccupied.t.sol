@@ -15,13 +15,13 @@ import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 contract IsSlotOccupiedTest is LibBitmapAssert {
     constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
 
-    function test_Occupied_EmptyBitmap_ReturnsFalse() public view {
+    function test_Occupied_EmptyBitmap_False() public view {
         uint256 bitmap = given_EmptyBitmap();
         bool occupied = when_IsSlotOccupied(bitmap, 42);
         then_IsOccupied(occupied, false);
     }
 
-    function test_Occupied_FullBitmap_ReturnsTrue() public view {
+    function test_Occupied_FullBitmap_True() public view {
         uint256 bitmap = given_FullBitmap();
         bool occupied = when_IsSlotOccupied(bitmap, 42);
         then_IsOccupied(occupied, true);
@@ -55,7 +55,7 @@ contract IsSlotOccupiedTest is LibBitmapAssert {
 
     // === Interface Compliance (Fuzz Tests) ===
 
-    function testFuzz_IsSlotOccupied_Complies(uint256 bitmap, uint8 index) public view {
+    function testFuzz_Occupied_Complies(uint256 bitmap, uint8 index) public view {
         then_CompliesWith_IsSlotOccupied(bitmap, index);
     }
 }

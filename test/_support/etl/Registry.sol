@@ -86,7 +86,7 @@ contract Ops {
         out[1] = a / 2;
     }
 
-    function _duplicate(uint256 a, uint256, uint256) external pure returns (uint256[] memory out) {
+    function _dup(uint256 a, uint256, uint256) external pure returns (uint256[] memory out) {
         out = new uint256[](2);
         out[0] = a;
         out[1] = a;

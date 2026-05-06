@@ -55,7 +55,7 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
 
     // === Input: Full Bitmap ===
 
-    function test_Pop_FullBitmap_ReturnsIndex0() public view {
+    function test_Pop_FullBitmap_Index0() public view {
         uint256 bitmap = given_FullBitmap();
         (, uint8 idx) = when_PopFirstFilledSlot(bitmap);
         then_IndexIs(idx, 0);
@@ -96,7 +96,7 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
         then_BitmapEmpty(finalBitmap);
     }
 
-    function test_Pop_Transition_FillThenPopSequence() public view {
+    function test_Pop_Sequential_FillThenPop() public view {
         uint256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 5);
         bitmap = when_FillSlotAt(bitmap, 10);
@@ -112,9 +112,8 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
 
     // === Interface Compliance (Fuzz Tests) ===
 
-    function testFuzz_PopFirstFilledSlot_Complies(uint256 bitmap) public view {
+    function testFuzz_Pop_Complies(uint256 bitmap) public view {
         vm.assume(bitmap != 0);
         then_CompliesWith_PopFirstFilledSlot(bitmap);
     }
 }
-
