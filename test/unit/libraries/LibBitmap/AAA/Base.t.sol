@@ -12,6 +12,8 @@ abstract contract LibBitmapTest is Test {
     // Common test constants
     uint256 constant EMPTY = 0;
     uint256 constant FULL = type(uint256).max;
+    bytes4 constant POPFIRST_FILLED_SLOT = IBitmap.popFirstFilledSlot.selector;
+    bytes4 constant GET_FIRST_EMPTY_SLOT = IBitmap.getFirstEmptySlot.selector;
 
     // Interface implementations for testing
     IBitmap internal implementation;

@@ -45,41 +45,13 @@ contract FillSlotAtTest is LibBitmapAssert, Ops {
         then_BitmapFull(bitmap);
     }
 
-    // === Boundary Tests ===
-
-    function test_Fill_BoundaryIndices() public view {
-        uint256 bitmap = given_EmptyBitmap();
-        bitmap = when_FillSlotAt(bitmap, 0);
-        then_SlotOccupied(bitmap, 0);
-        bitmap = when_FillSlotAt(bitmap, 255);
-        then_SlotOccupied(bitmap, 255);
-        bitmap = when_FillSlotAt(bitmap, 64);
-        then_SlotOccupied(bitmap, 64);
-        bitmap = when_FillSlotAt(bitmap, 128);
-        then_SlotOccupied(bitmap, 128);
-        bitmap = when_FillSlotAt(bitmap, 192);
-        then_SlotOccupied(bitmap, 192);
-    }
-
     // === Transition Tests ===
-
-    function test_Fill_Sequential_FillClearFill() public view {
-        uint256 bitmap = given_EmptyBitmap();
-        bitmap = when_FillSlotAt(bitmap, 42);
-        then_SlotOccupied(bitmap, 42);
-        bitmap = when_ClearSlotAt(bitmap, 42);
-        then_SlotEmpty(bitmap, 42);
-        bitmap = when_FillSlotAt(bitmap, 42);
-        then_SlotOccupied(bitmap, 42);
-    }
 
     function test_Fill_Sequential_FillsPreserveOrder() public view {
         uint256 bitmap = given_EmptyBitmap();
-        uint8[] memory indices = abi.encode(10, 50, 100, 200, 255).u8();
+        uint8[] memory indices = abi.encode(10, 70, 150, 200, 255).u8();
         for (uint256 i = 0; i < indices.length; i++) {
             bitmap = when_FillSlotAt(bitmap, indices[i]);
-        }
-        for (uint256 i = 0; i < indices.length; i++) {
             then_SlotOccupied(bitmap, indices[i]);
         }
     }

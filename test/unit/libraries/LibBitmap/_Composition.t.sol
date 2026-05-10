@@ -35,6 +35,16 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
         then_BitmapEmpty(nextBitmap);
     }
 
+    function test_Composition_Sequential_FillClearFill() public view {
+        uint256 bitmap = given_EmptyBitmap();
+        bitmap = when_FillSlotAt(bitmap, 42);
+        then_SlotOccupied(bitmap, 42);
+        bitmap = when_ClearSlotAt(bitmap, 42);
+        then_SlotEmpty(bitmap, 42);
+        bitmap = when_FillSlotAt(bitmap, 42);
+        then_SlotOccupied(bitmap, 42);
+    }
+
     function test_Composition_CountConsistency() public view {
         uint256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 1);
@@ -75,28 +85,41 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
 
     function testFuzz_Composition_RandomOperations(uint256 seed, uint8 operations) public view {
         uint256 bitmap = given_EmptyBitmap();
+        uint8 ops = uint8(bound(operations, 1, 24));
         uint16 expectedCount = 0;
-
-        // Perform random operations
-        for (uint8 i = 0; i < operations % 10; i++) {
+        uint8 previousPop;
+        // STATE TRANSFORMATION PHASE
+        for (uint8 i = 0; i < ops; i++) {
             uint8 index = uint8(uint256(keccak256(abi.encode(seed, i))) % 256);
-            if (when_IsSlotOccupied(bitmap, index)) {
-                // Clear if occupied
+            bool occupied = when_IsSlotOccupied(bitmap, index);
+            uint16 countBefore = when_CountFilledSlots(bitmap);
+            if (occupied) {
                 bitmap = when_ClearSlotAt(bitmap, index);
                 expectedCount--;
+                then_SlotEmpty(bitmap, index);
+                assertEq(when_CountFilledSlots(bitmap), countBefore - 1);
             } else {
-                // Fill if empty
                 bitmap = when_FillSlotAt(bitmap, index);
                 expectedCount++;
+                then_SlotOccupied(bitmap, index);
+                assertEq(when_CountFilledSlots(bitmap), countBefore + 1);
             }
+            // single invariant check (kept minimal)
+            assertEq(when_CountFilledSlots(bitmap), expectedCount);
         }
-        then_CountIs(when_CountFilledSlots(bitmap), expectedCount);
-        
-        // If bitmap not empty, pop should work
-        if (expectedCount > 0) {
-            (uint256 nextBitmap, uint8 index) = when_PopFirstFilledSlot(bitmap);
-            then_SlotOccupied(bitmap, index);
-            then_SlotEmpty(nextBitmap, index);
+        // POP EXHAUSTION PHASE
+        uint16 remaining = when_CountFilledSlots(bitmap);
+        for (uint16 i = 0; i < remaining; i++) {
+            uint16 countBefore = when_CountFilledSlots(bitmap);
+            (uint256 nextBitmap, uint8 idx) = when_PopFirstFilledSlot(bitmap);
+            assertEq(when_CountFilledSlots(nextBitmap), countBefore - 1);
+            then_SlotOccupied(bitmap, idx);
+            then_SlotEmpty(nextBitmap, idx);
+            if (i != 0) assertGt(idx, previousPop);
+            previousPop = idx;
+            bitmap = nextBitmap;
         }
+        // FINAL INVARIANT
+        then_BitmapEmpty(bitmap);
     }
 }

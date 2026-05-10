@@ -46,37 +46,11 @@ contract ClearSlotAtTest is LibBitmapAssert, Ops {
         then_BitmapEmpty(bitmap);
     }
     
-    // === Boundary Tests ===
-    
-    function test_Clear_BoundaryIndices() public view {
-        uint256 bitmap = given_FullBitmap();
-        bitmap = when_ClearSlotAt(bitmap, 0);
-        then_SlotEmpty(bitmap, 0);
-        bitmap = when_ClearSlotAt(bitmap, 255);
-        then_SlotEmpty(bitmap, 255);
-        bitmap = when_ClearSlotAt(bitmap, 64);
-        then_SlotEmpty(bitmap, 64);
-        bitmap = when_ClearSlotAt(bitmap, 128);
-        then_SlotEmpty(bitmap, 128);
-        bitmap = when_ClearSlotAt(bitmap, 192);
-        then_SlotEmpty(bitmap, 192);
-    }
-    
     // === Transition Tests ===
-    
-    function test_Clear_Sequential_ClearFillClear() public view {
-        uint256 bitmap = given_FullBitmap();
-        bitmap = when_ClearSlotAt(bitmap, 42);
-        then_SlotEmpty(bitmap, 42);
-        bitmap = when_FillSlotAt(bitmap, 42);
-        then_SlotOccupied(bitmap, 42);
-        bitmap = when_ClearSlotAt(bitmap, 42);
-        then_SlotEmpty(bitmap, 42);
-    }
     
     function test_Clear_Sequential_ClearsPreserveOrder() public view {
         uint256 bitmap = given_FullBitmap();
-        uint8[] memory indices = abi.encode(10, 50, 100, 200, 255).u8();
+        uint8[] memory indices = abi.encode(10, 70, 150, 200, 255).u8();
         for (uint256 i = 0; i < indices.length; i++) {
             bitmap = when_ClearSlotAt(bitmap, indices[i]);
         }

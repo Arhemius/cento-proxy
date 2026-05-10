@@ -11,5 +11,7 @@ interface IObservability {
 
     function getFacetAt(uint8 index) external view returns (address);
 
+    function getFacetCount() external view returns (uint256 count);
+
     function getFirstFreeSlot() external view returns (uint8);
 }

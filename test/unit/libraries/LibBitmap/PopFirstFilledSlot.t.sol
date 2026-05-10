@@ -3,7 +3,6 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {IBitmap} from "../../../_support/interfaces/IBitmap.sol";
 import "../../../_support/etl/_ETL.sol";
 
 /**
@@ -82,7 +81,7 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
 
     function test_Pop_EmptyBitmap_ErrorCompliance() public {
         uint256 bitmap = given_EmptyBitmap();
-        then_CompliesWith_Error(IBitmap.popFirstFilledSlot.selector, bitmap);
+        then_CompliesWith_Error(POPFIRST_FILLED_SLOT, bitmap);
     }
 
     // === Sequential Pops ===
@@ -96,24 +95,10 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
         then_BitmapEmpty(finalBitmap);
     }
 
-    function test_Pop_Sequential_FillThenPop() public view {
-        uint256 bitmap = given_EmptyBitmap();
-        bitmap = when_FillSlotAt(bitmap, 5);
-        bitmap = when_FillSlotAt(bitmap, 10);
-        bitmap = when_FillSlotAt(bitmap, 3);
-        (uint256 next1, uint8 idx1) = when_PopFirstFilledSlot(bitmap);
-        then_IndexIs(idx1, 3);
-        (uint256 next2, uint8 idx2) = when_PopFirstFilledSlot(next1);
-        then_IndexIs(idx2, 5);
-        (uint256 next3, uint8 idx3) = when_PopFirstFilledSlot(next2);
-        then_IndexIs(idx3, 10);
-        then_BitmapEmpty(next3);
-    }
-
     // === Interface Compliance (Fuzz Tests) ===
 
     function testFuzz_Pop_Complies(uint256 bitmap) public view {
-        vm.assume(bitmap != 0);
+        vm.assume(bitmap != EMPTY);
         then_CompliesWith_PopFirstFilledSlot(bitmap);
     }
 }

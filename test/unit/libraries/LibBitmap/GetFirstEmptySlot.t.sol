@@ -3,7 +3,6 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {IBitmap} from "../../../_support/interfaces/IBitmap.sol";
 import "../../../_support/etl/_ETL.sol";
 
 
@@ -53,13 +52,13 @@ contract GetFirstEmptySlotTest is LibBitmapAssert, Ops {
 
     function test_Get_FullBitmap_ErrorCompliance() public {
         uint256 bitmap = given_FullBitmap();
-        then_CompliesWith_Error(IBitmap.getFirstEmptySlot.selector, bitmap);
+        then_CompliesWith_Error(GET_FIRST_EMPTY_SLOT, bitmap);
     }
 
     // === Interface Compliance (Fuzz Tests) ===
 
     function testFuzz_Get_Complies(uint256 bitmap) public view {
-        vm.assume(bitmap != type(uint256).max); // Skip full bitmap (would revert)
+        vm.assume(bitmap != FULL); // Skip full bitmap (would revert)
         then_CompliesWith_GetFirstEmptySlot(bitmap);
     }
 }
