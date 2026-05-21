@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import "../../../_support/etl/_ETL.sol";
+import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
  * @title ClearSlotAt Tests
@@ -14,9 +14,7 @@ import "../../../_support/etl/_ETL.sol";
  * - Behavior: Clears bit at index
  * - Idempotent: Clearing already-empty slot is no-op
  */
-contract ClearSlotAtTest is LibBitmapAssert, Ops {
-    using T for bytes;
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract ClearSlotAtTest is LibBitmapAssert(new LibBitmapTestSetup()) {
     
     function test_Clear_FullBitmap_ClearsBit() public view {
         uint256 bitmap = given_FullBitmap();
@@ -31,7 +29,7 @@ contract ClearSlotAtTest is LibBitmapAssert, Ops {
     }
     
     function test_Clear_PreservesOtherBits() public view {
-        uint8[] memory indices = abi.encode(10, 20).u8();
+        uint8[] memory indices = U8_(abi.encode(10, 20));
         uint256 bitmap = given_MultipleBits(indices);
         uint256 next = when_ClearSlotAt(bitmap, 10);
         then_SlotEmpty(next, 10);
@@ -50,7 +48,7 @@ contract ClearSlotAtTest is LibBitmapAssert, Ops {
     
     function test_Clear_Sequential_ClearsPreserveOrder() public view {
         uint256 bitmap = given_FullBitmap();
-        uint8[] memory indices = abi.encode(10, 70, 150, 200, 255).u8();
+        uint8[] memory indices = U8_(abi.encode(10, 70, 150, 200, 255));
         for (uint256 i = 0; i < indices.length; i++) {
             bitmap = when_ClearSlotAt(bitmap, indices[i]);
         }

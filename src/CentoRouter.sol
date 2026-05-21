@@ -9,7 +9,7 @@ import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
 import { Facet } from "./structs/Facet.sol";
 
-contract CentoRouter is CentoControllers { // layout at erc7201("cento.storage.baseSlot")
+contract CentoRouter is CentoControllers {
 
     bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 

@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import "../../../_support/etl/_ETL.sol";
+import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 
 /**
@@ -15,9 +15,7 @@ import "../../../_support/etl/_ETL.sol";
  * - Behavior: Returns index of lowest empty slot
  * - Reverts: NoFreeSlots if bitmap is full
  */
-contract GetFirstEmptySlotTest is LibBitmapAssert, Ops {
-    using T for bytes;
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract GetFirstEmptySlotTest is LibBitmapAssert(new LibBitmapTestSetup()) {
 
     // === Input: Empty Bitmap ===
 
@@ -36,7 +34,7 @@ contract GetFirstEmptySlotTest is LibBitmapAssert, Ops {
     }
 
     function test_Get_MultipleFilled_ReturnsLowestEmpty() public view {
-        uint8[] memory filledIndices = abi.encode(5, 10, 15).u8();
+        uint8[] memory filledIndices = U8_(abi.encode(5, 10, 15));
         uint256 bitmap = given_MultipleBits(filledIndices);
         uint8 idx = when_GetFirstEmptySlot(bitmap);
         then_IndexIs(idx, 0); // 0 is still empty

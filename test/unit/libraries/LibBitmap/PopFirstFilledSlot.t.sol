@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import "../../../_support/etl/_ETL.sol";
+import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
  * @title PopFirstFilledSlot Tests
@@ -15,9 +15,7 @@ import "../../../_support/etl/_ETL.sol";
  * - Behavior: Returns index of lowest set bit, clears that bit
  * - Reverts: If bitmap is 0 (no filled slots)
  */
-contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
-    using T for bytes;
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract PopFirstFilledSlotTest is LibBitmapAssert(new LibBitmapTestSetup()) {
 
     // === Input: Single Bit ===
 
@@ -38,14 +36,14 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
     // === Input: Multiple Bits ===
 
     function test_Pop_MultipleBits_ReturnsLowest() public view {
-        uint8[] memory indices = abi.encode(100, 50, 200).u8();
+        uint8[] memory indices = U8_(abi.encode(100, 50, 200));
         uint256 bitmap = given_MultipleBits(indices);
         (, uint8 idx) = when_PopFirstFilledSlot(bitmap);
         then_IndexIs(idx, 50);
     }
 
     function test_Pop_MultipleBits_ClearsOnlyLowest() public view {
-        uint8[] memory indices = abi.encode(10, 20).u8();
+        uint8[] memory indices = U8_(abi.encode(10, 20));
         uint256 bitmap = given_MultipleBits(indices);
         (uint256 next,) = when_PopFirstFilledSlot(bitmap);
         then_SlotEmpty(next, 10);
@@ -63,7 +61,7 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
     // === Boundary Tests ===
 
     function test_Pop_BoundaryIndices() public view {
-        uint8[] memory indices = abi.encode(0, 64, 128, 192, 255).u8();
+        uint8[] memory indices = U8_(abi.encode(0, 64, 128, 192, 255));
         uint256 next = given_MultipleBits(indices);
         uint8 idx;
         for (uint256 step; step < indices.length; step++) {
@@ -87,8 +85,8 @@ contract PopFirstFilledSlotTest is LibBitmapAssert, Ops {
     // === Sequential Pops ===
 
     function test_Pop_Sequential_OrderedIndices() public view {
-        uint8[] memory inputIndices = abi.encode(200, 10, 100).u8();
-        uint8[] memory expectedOrder = abi.encode(10, 100, 200).u8();
+        uint8[] memory inputIndices = U8_(abi.encode(200, 10, 100));
+        uint8[] memory expectedOrder = U8_(abi.encode(10, 100, 200));
         uint256 bitmap = given_MultipleBits(inputIndices);
         (uint8[] memory poppedIndices, uint256 finalBitmap) = when_PopMultiple(bitmap, 3);
         then_PopSequenceIs(poppedIndices, expectedOrder);

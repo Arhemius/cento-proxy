@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import "../../../_support/etl/_ETL.sol";
+import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
  * @title FillSlotAt Tests
@@ -14,9 +14,7 @@ import "../../../_support/etl/_ETL.sol";
  * - Behavior: Sets bit at index
  * - Idempotent: Filling already-filled slot is no-op
  */
-contract FillSlotAtTest is LibBitmapAssert, Ops {
-    using T for bytes;
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract FillSlotAtTest is LibBitmapAssert(new LibBitmapTestSetup()) {
 
     function test_Fill_EmptyBitmap_SetsBit() public view {
         uint256 bitmap = given_EmptyBitmap();
@@ -49,7 +47,7 @@ contract FillSlotAtTest is LibBitmapAssert, Ops {
 
     function test_Fill_Sequential_FillsPreserveOrder() public view {
         uint256 bitmap = given_EmptyBitmap();
-        uint8[] memory indices = abi.encode(10, 70, 150, 200, 255).u8();
+        uint8[] memory indices = U8_(abi.encode(10, 70, 150, 200, 255));
         for (uint256 i = 0; i < indices.length; i++) {
             bitmap = when_FillSlotAt(bitmap, indices[i]);
             then_SlotOccupied(bitmap, indices[i]);

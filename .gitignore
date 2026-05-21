@@ -16,3 +16,4 @@ docs/
 .env
 # .gas-snapshot
 lcov.info
+lcov.info.pruned

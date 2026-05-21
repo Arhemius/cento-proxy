@@ -9,8 +9,7 @@ import {LibBitmapTestSetup} from "./AAA/Setup.sol";
  *
  * Tests cross-function interactions and complex scenarios
  */
-contract LibBitmapCompositionTest is LibBitmapAssert {
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract LibBitmapCompositionTest is LibBitmapAssert(new LibBitmapTestSetup()) {
 
     function test_Composition_FillAndPop_RoundTrip() public view {
         uint256 bitmap = given_EmptyBitmap();

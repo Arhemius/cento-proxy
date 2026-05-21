@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import "../../../_support/etl/_ETL.sol";
+import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
  * @title CountFilledSlots Tests
@@ -13,9 +13,7 @@ import "../../../_support/etl/_ETL.sol";
  * - Output: count (uint16)
  * - Behavior: Returns number of set bits
  */
-contract CountFilledSlotsTest is LibBitmapAssert, Ops {
-    using T for bytes;
-    constructor() LibBitmapAssert(new LibBitmapTestSetup()) {}
+contract CountFilledSlotsTest is LibBitmapAssert(new LibBitmapTestSetup()) {
 
     function test_Count_EmptyBitmap_Returns0() public view {
         uint256 bitmap = given_EmptyBitmap();
@@ -42,7 +40,7 @@ contract CountFilledSlotsTest is LibBitmapAssert, Ops {
     }
 
     function test_Count_VariousBits() public view {
-        uint8[] memory indices = abi.encode(0, 64, 128, 192, 255).u8();
+        uint8[] memory indices = U8_(abi.encode(0, 64, 128, 192, 255));
         uint256 bitmap = given_MultipleBits(indices);
         uint16 count = when_CountFilledSlots(bitmap);
         then_CountIs(count, 5);
