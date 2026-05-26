@@ -2,14 +2,13 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 
 /**
  * @title LibBitmap Composition Tests
  *
  * Tests cross-function interactions and complex scenarios
  */
-contract LibBitmapCompositionTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract LibBitmapCompositionTest is LibBitmapAssert {
 
     function test_Composition_FillAndPop_RoundTrip() public view {
         uint256 bitmap = given_EmptyBitmap();

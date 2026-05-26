@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
@@ -14,7 +13,7 @@ import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
  * - Behavior: Sets bit at index
  * - Idempotent: Filling already-filled slot is no-op
  */
-contract FillSlotAtTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract FillSlotAtTest is LibBitmapAssert {
 
     function test_Fill_EmptyBitmap_SetsBit() public view {
         uint256 bitmap = given_EmptyBitmap();

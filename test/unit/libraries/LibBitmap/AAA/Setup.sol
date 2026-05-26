@@ -10,8 +10,8 @@ import {IBitmap} from "../../../../_support/interfaces/IBitmap.sol";
  * @notice Initializes implementation and reference contracts for testing
  */
 contract LibBitmapTestSetup {
-    IBitmap public implementation;
-    IBitmap public oracle;
+    IBitmap internal immutable implementation;
+    IBitmap internal immutable oracle;
 
     constructor() {
         implementation = new LibBitmapAdapter();

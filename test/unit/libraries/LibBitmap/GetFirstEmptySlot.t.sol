@@ -2,9 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
-
 
 /**
  * @title GetFirstEmptySlot Tests
@@ -15,7 +13,7 @@ import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
  * - Behavior: Returns index of lowest empty slot
  * - Reverts: NoFreeSlots if bitmap is full
  */
-contract GetFirstEmptySlotTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract GetFirstEmptySlotTest is LibBitmapAssert {
 
     // === Input: Empty Bitmap ===
 

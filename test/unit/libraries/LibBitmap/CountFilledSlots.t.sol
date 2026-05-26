@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
@@ -13,7 +12,7 @@ import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
  * - Output: count (uint16)
  * - Behavior: Returns number of set bits
  */
-contract CountFilledSlotsTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract CountFilledSlotsTest is LibBitmapAssert {
 
     function test_Count_EmptyBitmap_Returns0() public view {
         uint256 bitmap = given_EmptyBitmap();

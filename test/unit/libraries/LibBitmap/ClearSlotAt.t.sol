@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
@@ -14,7 +13,7 @@ import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
  * - Behavior: Clears bit at index
  * - Idempotent: Clearing already-empty slot is no-op
  */
-contract ClearSlotAtTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract ClearSlotAtTest is LibBitmapAssert {
     
     function test_Clear_FullBitmap_ClearsBit() public view {
         uint256 bitmap = given_FullBitmap();

@@ -34,6 +34,9 @@ library Transform {
     //     }
     // }
 
+    // !!!!!!!! Replace staticcall approach with direct calls to internal functions by using function types.
+
+
     // /*//////////////////////////////////////////////////////////////
     //                           DISPATCH
     // //////////////////////////////////////////////////////////////*/

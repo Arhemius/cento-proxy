@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 
 /**
  * @title IsSlotOccupied Tests
@@ -12,7 +11,7 @@ import {LibBitmapTestSetup} from "./AAA/Setup.sol";
  * - Output: occupied (bool)
  * - Behavior: Returns true if bit at index is set
  */
-contract IsSlotOccupiedTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract IsSlotOccupiedTest is LibBitmapAssert {
 
     function test_Occupied_EmptyBitmap_False() public view {
         uint256 bitmap = given_EmptyBitmap();

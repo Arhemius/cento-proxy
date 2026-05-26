@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
@@ -15,7 +14,7 @@ import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
  * - Behavior: Returns index of lowest set bit, clears that bit
  * - Reverts: If bitmap is 0 (no filled slots)
  */
-contract PopFirstFilledSlotTest is LibBitmapAssert(new LibBitmapTestSetup()) {
+contract PopFirstFilledSlotTest is LibBitmapAssert {
 
     // === Input: Single Bit ===
 

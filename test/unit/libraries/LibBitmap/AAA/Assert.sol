@@ -2,15 +2,13 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAct} from "./Act.sol";
-import {LibBitmapTest} from "./Base.t.sol";
-import {LibBitmapTestSetup} from "./Setup.sol";
 
 /**
  * @title LibBitmap Assert Layer
  * @notice THEN clauses - interface compliance verification
  */
 abstract contract LibBitmapAssert is LibBitmapAct {
-    constructor(LibBitmapTestSetup setup) LibBitmapTest(setup.implementation(), setup.oracle()) {}
+
     // === Output Verification ===
 
     function then_IndexIs(uint8 actual, uint8 expected) internal pure {
@@ -61,15 +59,10 @@ abstract contract LibBitmapAssert is LibBitmapAct {
     // === Error Compliance (verify both implementations throw same error) ===
 
     function then_CompliesWith_Error(bytes4 selector, uint256 bitmap) internal {
-        (bool implSuccess, bytes memory implData) = address(implementation).call(abi.encodeWithSelector(selector, bitmap));
-        (bool refSuccess, bytes memory refData) = address(oracle).call(abi.encodeWithSelector(selector, bitmap));
-        assertFalse(implSuccess, "Implementation should revert");
-        assertFalse(refSuccess, "Oracle should revert");
-        assertGe(implData.length, 4, "Implementation error data too short");
-        assertGe(refData.length, 4, "Oracle error data too short");
-        bytes4 implSelector = _unsafeToSelector(implData);
-        bytes4 refSelector = _unsafeToSelector(refData);
-        assertEq(implSelector, refSelector, "Error selectors must match");
+        assertEqCall(
+            address(implementation), abi.encodeWithSelector(selector, bitmap),
+            address(oracle), abi.encodeWithSelector(selector, bitmap)
+        );
     }
 
     // === Interface Compliance Verification ===
