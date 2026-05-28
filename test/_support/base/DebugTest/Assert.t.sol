@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { Test } from "../../../../lib/forge-std/src/Test.sol";
-import { Debug } from "../../../../src/libraries/LibDebug.sol";
-import { console } from "../../../../lib/forge-std/src/console.sol";
+import { Test } from "forge-std/Test.sol";
+import { Debug } from "src/libraries/LibDebug.sol";
+import { console } from "forge-std/console.sol";
 
 abstract contract DebugErasureAssert is Test {
     using {_stripMetadata} for bytes;

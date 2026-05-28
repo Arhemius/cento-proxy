@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {IBitmap} from "../interfaces/IBitmap.sol";
+import {IBitmap} from "support/interfaces/IBitmap.sol";
 
 /**
  * @title ReferenceBitmap

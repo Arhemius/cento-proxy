@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import { LibBitmapAdapter } from "../../adapters/LibBitmapAdapter.sol";
-import { LibBitmapDebugAdapter } from "../../adapters/LibBitmapDebugAdapter.sol";
+import { LibBitmapAdapter } from "support/adapters/LibBitmapAdapter.sol";
+import { LibBitmapDebugAdapter } from "support/adapters/LibBitmapDebugAdapter.sol";
 import { DebugErasureAssert } from "./Assert.t.sol";
 
 contract DebugErasureTest is DebugErasureAssert {

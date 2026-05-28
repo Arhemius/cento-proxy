@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapAssert} from "./AAA/Assert.sol";
-import "../../../_support/etl/UintArray/Uint8Array.builtin.sol";
+import "support/etl/UintArray/Uint8Array.builtin.sol";
 
 /**
  * @title CountFilledSlots Tests

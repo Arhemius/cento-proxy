@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {Test} from "../../../../../lib/forge-std/src/Test.sol";
-import {IBitmap} from "../../../../_support/interfaces/IBitmap.sol";
+import {Test} from "forge-std/Test.sol";
+import {IBitmap} from "support/interfaces/IBitmap.sol";
 import {LibBitmapTestSetup} from "./Setup.sol";
 
 /**

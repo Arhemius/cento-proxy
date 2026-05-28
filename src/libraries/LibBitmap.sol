@@ -64,7 +64,9 @@ library LibBitmap {
     }
 
     function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {
-        for (; bitmap != 0; bitmap &= (bitmap - 1)) count++;
+        for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
+            unchecked { count++; } 
+        }
     }
 
     function _mask(uint8 index) private pure returns (uint256) {

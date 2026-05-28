@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {IBitmap} from "../interfaces/IBitmap.sol";
-import {LibBitmapDebug} from "../oracles/ReferenceBitmapDebug.sol";
+import {IBitmap} from "support/interfaces/IBitmap.sol";
+import {LibBitmapDebug} from "support/oracles/ReferenceBitmapDebug.sol";
 
 /**
  * @title LibBitmapAdapter

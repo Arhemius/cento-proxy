@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "../../../src/libraries/LibDebug.sol";
+import "src/libraries/LibDebug.sol";
 
 library LibBitmapDebug {
     
@@ -59,7 +59,9 @@ library LibBitmapDebug {
     }
 
     function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {
-        for (; bitmap != 0; bitmap &= (bitmap - 1)) count++;
+        for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
+            unchecked { count++; } 
+        }
     }
 
     function _mask(uint8 index) private pure returns (uint256) {
