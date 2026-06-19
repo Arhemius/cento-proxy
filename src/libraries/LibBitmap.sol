@@ -3,9 +3,16 @@ pragma solidity ^0.8.29;
 
 import "./LibDebug.sol";
 
+type  bitmap256 is uint256;
+using LibBitmap for bitmap256 global;
+
+function u(bitmap256 x) pure returns (uint256)   { return bitmap256.unwrap(x); }
+function w(uint256 x)   pure returns (bitmap256) { return bitmap256.wrap(x);   }
+
+
 library LibBitmap {
     
-    uint64 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
+    uint64  private constant DEBRUIJN64_MAGIC   = 0x03f79d71b4cb0a89;
     bytes32 private constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
     bytes32 private constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
 
@@ -17,9 +24,8 @@ library LibBitmap {
         }
     }
 
-    modifier onlySingleBit(uint256 x) {
+    function __onlySingleBit__(uint256 x) private pure {
         if (Debug.ON) assert((x != 0) && (x & (x - 1)) == 0);
-        _;
     }
 
     function _ctz64(uint64 x) private pure returns (uint8 r) {
@@ -34,7 +40,8 @@ library LibBitmap {
         }
     }
 
-    function _lsbIndex(uint256 lsb) private pure onlySingleBit(lsb) returns (uint8) {
+    function _lsbIndex(uint256 lsb) private pure returns (uint8) {
+        __onlySingleBit__(lsb);
         unchecked {
             uint64 max64 = type(uint64).max;
             if ((lsb & max64) != 0)          return _ctz64(_unsafeToUint64(lsb));
@@ -44,17 +51,19 @@ library LibBitmap {
         }
     }
 
-    function popFirstFilledSlot(uint256 bitmap) internal pure returns (uint256 nextBitmap, uint8 index) {
+    function popFirstFilledSlot(bitmap256 _bitmap) internal pure returns (bitmap256 nextBitmap, uint8 index) {
+        uint256 bitmap = u(_bitmap);
         if (bitmap == 0) revert NoFreeSlots();
         uint256 lsb;
         unchecked {
             lsb = bitmap & (~bitmap + 1);
         } 
         index = _lsbIndex(lsb);
-        nextBitmap = bitmap ^ lsb;
+        nextBitmap = w(bitmap ^ lsb);
     }
 
-    function getFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
+    function getFirstEmptySlot(bitmap256 _bitmap) internal pure returns (uint8 index) {
+        uint256 bitmap = u(_bitmap);
         uint256 free;
         unchecked {
             free = ~bitmap & (bitmap + 1);
@@ -63,7 +72,8 @@ library LibBitmap {
         index = _lsbIndex(free);
     }
 
-    function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {
+    function countFilledSlots(bitmap256 _bitmap) internal pure returns (uint16 count) {
+        uint256 bitmap = u(_bitmap);
         for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
             unchecked { count++; } 
         }
@@ -73,15 +83,15 @@ library LibBitmap {
         return uint256(1) << index;
     }
     
-    function isSlotOccupied(uint256 bitmap, uint8 index) internal pure returns (bool) {
-        return (bitmap & _mask(index)) != 0;
+    function isSlotOccupied(bitmap256 _bitmap, uint8 index) internal pure returns (bool) {
+        return (u(_bitmap) & _mask(index)) != 0;
     }
 
-    function fillSlotAt(uint256 bitmap, uint8 index) internal pure returns (uint256) {
-        return bitmap | _mask(index);
+    function fillSlotAt(bitmap256 _bitmap, uint8 index) internal pure returns (bitmap256) {
+        return w(u(_bitmap) | _mask(index));
     }
 
-    function clearSlotAt(uint256 bitmap, uint8 index) internal pure returns (uint256) {
-        return bitmap & ~_mask(index);
+    function clearSlotAt(bitmap256 _bitmap, uint8 index) internal pure returns (bitmap256) {
+        return w(u(_bitmap) & ~_mask(index));
     }
 }

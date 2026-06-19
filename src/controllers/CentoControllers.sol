@@ -9,6 +9,7 @@ contract CentoControllers {
 
     function supportsInterface(bytes4) external returns (bool) { _delegate(ERC165_INDEX); }
 
+    //solve the payable part
     function _delegate(uint8 index) private {
         assembly {
             let facet := sload(add(BASE_SLOT, index))

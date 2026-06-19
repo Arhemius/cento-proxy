@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {LibBitmapAssert} from "./AAA/Assert.sol";
+import {LibBitmapTestSetup} from "./AAA/Setup.sol";
+import {bitmap256} from "src/libraries/LibBitmap.sol";
 
 /**
  * @title LibBitmap Composition Tests
  *
  * Tests cross-function interactions and complex scenarios
  */
-contract LibBitmapCompositionTest is LibBitmapAssert {
+contract LibBitmapCompositionTest is LibBitmapTestSetup {
 
     function test_Composition_FillAndPop_RoundTrip() public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 5);
         bitmap = when_FillSlotAt(bitmap, 10);
         bitmap = when_FillSlotAt(bitmap, 15);
 
-        (uint256 nextBitmap, uint8 index) = when_PopFirstFilledSlot(bitmap);
+        (bitmap256 nextBitmap, uint8 index) = when_PopFirstFilledSlot(bitmap);
         then_IndexIs(index, 5);
         then_SlotEmpty(nextBitmap, 5);
         then_SlotOccupied(nextBitmap, 10);
@@ -34,7 +35,7 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
     }
 
     function test_Composition_Sequential_FillClearFill() public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 42);
         then_SlotOccupied(bitmap, 42);
         bitmap = when_ClearSlotAt(bitmap, 42);
@@ -44,7 +45,7 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
     }
 
     function test_Composition_CountConsistency() public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         bitmap = when_FillSlotAt(bitmap, 1);
         bitmap = when_FillSlotAt(bitmap, 100);
         bitmap = when_FillSlotAt(bitmap, 200);
@@ -56,7 +57,7 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
     }
 
     function test_Composition_GetFirstEmpty_AfterOperations() public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         for (uint8 i = 0; i < 5; i++) {
             bitmap = when_FillSlotAt(bitmap, i);
         }
@@ -66,14 +67,14 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
     }
 
     function test_Composition_FullCycle() public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         for (uint16 i = 0; i < 256; i++) {
             bitmap = when_FillSlotAt(bitmap, _unsafeToUint8(i));
         }
         then_BitmapFull(bitmap);
         then_CountIs(when_CountFilledSlots(bitmap), 256);
         for (uint16 i = 0; i < 256; i++) {
-            (uint256 nextBitmap, uint8 index) = when_PopFirstFilledSlot(bitmap);
+            (bitmap256 nextBitmap, uint8 index) = when_PopFirstFilledSlot(bitmap);
             then_IndexIs(index, _unsafeToUint8(i));
             bitmap = nextBitmap;
         }
@@ -82,7 +83,7 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
     }
 
     function testFuzz_Composition_RandomOperations(uint256 seed, uint8 operations) public view {
-        uint256 bitmap = given_EmptyBitmap();
+        bitmap256 bitmap = given_EmptyBitmap();
         uint8 ops = uint8(bound(operations, 1, 24));
         uint16 expectedCount = 0;
         uint8 previousPop;
@@ -109,7 +110,7 @@ contract LibBitmapCompositionTest is LibBitmapAssert {
         uint16 remaining = when_CountFilledSlots(bitmap);
         for (uint16 i = 0; i < remaining; i++) {
             uint16 countBefore = when_CountFilledSlots(bitmap);
-            (uint256 nextBitmap, uint8 idx) = when_PopFirstFilledSlot(bitmap);
+            (bitmap256 nextBitmap, uint8 idx) = when_PopFirstFilledSlot(bitmap);
             assertEq(when_CountFilledSlots(nextBitmap), countBefore - 1);
             then_SlotOccupied(bitmap, idx);
             then_SlotEmpty(nextBitmap, idx);

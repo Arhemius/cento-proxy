@@ -7,8 +7,14 @@ import { Facet } from "../structs/Facet.sol";
 
 contract FacetManager is IFacetManager { 
 
-    function atomicUpdate(Facet[] memory toUpdate, bytes4[] memory addI, bytes4[] memory removeI) external override {
+    function atomicUpdate(
+        Facet[] calldata toUpdate, 
+        bytes4[] calldata addI, 
+        bytes4[] calldata removeI,
+        address migrator, 
+        bytes calldata _calldata
+    ) external override {
         lc.enforceIsContractOwner();
-        lc.atomicUpdate(toUpdate, addI, removeI);
+        lc.atomicUpdate(toUpdate, addI, removeI, migrator, _calldata);
     }
 }

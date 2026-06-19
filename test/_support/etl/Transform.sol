@@ -122,7 +122,7 @@ library Transform {
     // }
 
     // function project(bytes memory data, uint stride, uint field) internal pure returns (bytes memory) {
-    //     uint256[] memory arr = u256(data);
+    //     uint256[] memory arr = word(data);
     //     uint len = arr.length / stride;
     //     uint256[] memory out = new uint256[](len);
     //     for (uint i; i < len; i++) {

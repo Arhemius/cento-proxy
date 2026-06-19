@@ -1,31 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "../_ETL.sol";
+import { U8s, U8Lib } from "./Uint8ArrayLib.sol";
 
-struct U8s {
-    uint8[] data;
+function U8(bytes memory data) pure returns (U8s memory) {
+    return U8Lib.from(data);
 }
 
-using U8Lib for U8s global;
-
-library U8Lib {
-
-    function from(bytes memory data) internal pure returns (U8s memory) {
-        return U8s({ data: _decode(data) });
-    }
-
-    function _decode(bytes memory data) private pure returns (uint8[] memory output) {
-        uint256[] memory arr = T.word(data);
-        output = new uint8[](arr.length);
-        for (uint256 i; i < arr.length; i++) {
-            require(arr[i] <= type(uint8).max, "U8: overflow");
-            output[i] = uint8(arr[i]);
-        }
-    }
-
-    function out(U8s memory self) internal pure returns (uint8[] memory) {
-        return self.data;
-    }
-
+function U8_(bytes memory data) pure returns (uint8[] memory) {
+    return U8(data).out();
 }

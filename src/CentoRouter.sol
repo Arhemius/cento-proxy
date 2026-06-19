@@ -27,7 +27,7 @@ contract CentoRouter is CentoControllers {
         addInterfaces[2] = type(IFacetManager).interfaceId;
         addInterfaces[3] = type(IObservability).interfaceId;
 
-        lc.atomicUpdate(facets, addInterfaces, new bytes4[](0));
+        lc.atomicUpdate(facets, addInterfaces, new bytes4[](0), address(0), "");
     }
 
     function centoEntry() external payable {

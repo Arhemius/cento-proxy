@@ -3,18 +3,23 @@ pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
 import {IBitmap} from "support/interfaces/IBitmap.sol";
-import {LibBitmapTestSetup} from "./Setup.sol";
+import {bitmap256, w} from "src/libraries/LibBitmap.sol";
 
 /**
  * @title LibBitmap Base Test
  * @notice Foundation for all LibBitmap tests
  */
-abstract contract LibBitmapTest is Test, LibBitmapTestSetup {
-    // Common test constants
-    uint256 constant EMPTY = 0;
-    uint256 constant FULL = type(uint256).max;
+abstract contract LibBitmapTest is Test {
+
+    bitmap256 immutable EMPTY_BITMAP = w(0);
+    bitmap256 immutable FULL_BITMAP = w(type(uint256).max);
+
+    //maybe move function selector and error constants to Setup.sol?
     bytes4 constant POPFIRST_FILLED_SLOT = IBitmap.popFirstFilledSlot.selector;
     bytes4 constant GET_FIRST_EMPTY_SLOT = IBitmap.getFirstEmptySlot.selector;
+
+    IBitmap internal implementation;
+    IBitmap internal oracle;
 
     function _unsafeToUint8(uint256 x) internal pure returns (uint8 r) {
         assembly {
@@ -27,6 +32,7 @@ abstract contract LibBitmapTest is Test, LibBitmapTestSetup {
             r := mload(add(x, 32))
         }
     }
+}
 
     // function map(
     //     bytes memory data,
@@ -52,4 +58,3 @@ abstract contract LibBitmapTest is Test, LibBitmapTestSetup {
         // }
         // return fromWord(arr);
     // }
-}

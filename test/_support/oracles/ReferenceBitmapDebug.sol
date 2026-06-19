@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "src/libraries/LibDebug.sol";
+import {IBitmap} from "support/interfaces/IBitmap.sol";
+import { bitmap256, u, w } from "src/libraries/LibBitmap.sol";
 
-library LibBitmapDebug {
-    
-    uint64 private constant DEBRUIJN64_MAGIC = 0x03f79d71b4cb0a89;
+/**
+ * @title ReferenceBitmapDebug
+ * @notice Reference implementation contract that implements IBitmap by copying LibBitmap library, except for debug-mode assertions
+ * @dev Enables modifier-erasure testing of the LibBitmap library
+ */
+contract ReferenceBitmapDebug is IBitmap {
+          
+    uint64  private constant DEBRUIJN64_MAGIC   = 0x03f79d71b4cb0a89;
     bytes32 private constant DEBRUIJN64_TABLE_0 = 0x050c12181e21272d162b3335243b373e04111d262a323a3d031c313902300100;
     bytes32 private constant DEBRUIJN64_TABLE_1 = 0x0607080d09130e190a1f14220f281a2e0b17202c153423361025293c1b382f3f;
-
-    error NoFreeSlots();
 
     function _unsafeToUint64(uint256 x) private pure returns (uint64 r) {
         assembly {
@@ -39,17 +43,19 @@ library LibBitmapDebug {
         }
     }
 
-    function popFirstFilledSlot(uint256 bitmap) internal pure returns (uint256 nextBitmap, uint8 index) {
+    function popFirstFilledSlot(bitmap256 _bitmap) external pure override returns (bitmap256 nextBitmap, uint8 index) {
+        uint256 bitmap = u(_bitmap);
         if (bitmap == 0) revert NoFreeSlots();
         uint256 lsb;
         unchecked {
             lsb = bitmap & (~bitmap + 1);
         } 
         index = _lsbIndex(lsb);
-        nextBitmap = bitmap ^ lsb;
+        nextBitmap = w(bitmap ^ lsb);
     }
 
-    function getFirstEmptySlot(uint256 bitmap) internal pure returns (uint8 index) {
+    function getFirstEmptySlot(bitmap256 _bitmap) external pure override returns (uint8 index) {
+        uint256 bitmap = u(_bitmap);
         uint256 free;
         unchecked {
             free = ~bitmap & (bitmap + 1);
@@ -58,7 +64,8 @@ library LibBitmapDebug {
         index = _lsbIndex(free);
     }
 
-    function countFilledSlots(uint256 bitmap) internal pure returns (uint16 count) {
+    function countFilledSlots(bitmap256 _bitmap) external pure override returns (uint16 count) {
+        uint256 bitmap = u(_bitmap);
         for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
             unchecked { count++; } 
         }
@@ -68,15 +75,15 @@ library LibBitmapDebug {
         return uint256(1) << index;
     }
     
-    function isSlotOccupied(uint256 bitmap, uint8 index) internal pure returns (bool) {
-        return (bitmap & _mask(index)) != 0;
+    function isSlotOccupied(bitmap256 _bitmap, uint8 index) external pure override returns (bool) {
+        return (u(_bitmap) & _mask(index)) != 0;
     }
 
-    function fillSlotAt(uint256 bitmap, uint8 index) internal pure returns (uint256) {
-        return bitmap | _mask(index);
+    function fillSlotAt(bitmap256 _bitmap, uint8 index) external pure override returns (bitmap256) {
+        return w(u(_bitmap) | _mask(index));
     }
 
-    function clearSlotAt(uint256 bitmap, uint8 index) internal pure returns (uint256) {
-        return bitmap & ~_mask(index);
+    function clearSlotAt(bitmap256 _bitmap, uint8 index) external pure override returns (bitmap256) {
+        return w(u(_bitmap) & ~_mask(index));
     }
 }
