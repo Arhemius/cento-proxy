@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {LibCento as lc} from "src/libraries/LibCento.sol";
 import {bitmap256} from "src/libraries/LibBitmap.sol";
-import {CentoStorage} from "src/structs/CentoStorage.sol";
+import {CentoStorage} from "support/oracles/ReferenceCentoStorage.sol";
 
 abstract contract LibCentoHarness {
 
+    bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+
     function CS() internal pure returns (CentoStorage storage cs) {
-        cs = lc._cs();
+        bytes32 position = BASE_SLOT;
+        assembly { cs.slot := position }
     }
 
 
@@ -24,7 +26,7 @@ abstract contract LibCentoHarness {
         return CS().supportedInterfaces[id];
     }
 
-    function getContractOwner() external view returns (address) {
+    function getContractOwner() external view returns (address) {//???
         return CS().contractOwner;
     }
 
@@ -64,5 +66,11 @@ abstract contract LibCentoHarness {
     function removeFacetAtWithBitmap(uint8 index) external {
         CS().facets[index] = address(0);
         CS().indexBitmap = CS().indexBitmap.clearSlotAt(index);
+    }
+
+    function TestSlot(bytes32 slot) external view returns (bytes32 value) {
+        assembly {
+            value := sload(slot)
+        }
     }
 }

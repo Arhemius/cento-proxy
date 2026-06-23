@@ -8,7 +8,7 @@ import "src/libraries/LibDebug.sol";
 
 library LibCento {
 
-    bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+    bytes32 constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
     event InterfaceAdded(bytes4 interfaceType);
     event InterfaceRemoved(bytes4 interfaceType);
@@ -41,11 +41,11 @@ library LibCento {
                 if (old == facet) return bitmap;
                 emit FacetUpdated(index, old, facet);
             } else {
-                bitmap.fillSlotAt(index);
+                bitmap = bitmap.fillSlotAt(index);
                 emit FacetAdded(index, facet);
             }
         } else {
-            bitmap.clearSlotAt(index);
+            bitmap = bitmap.clearSlotAt(index);
             emit FacetRemoved(index, cs.facets[index]);
         }
         cs.facets[index] = facet;
@@ -59,15 +59,15 @@ library LibCento {
     }
 
     function atomicUpdate(
-        Facet[] memory setF, 
-        bytes4[] memory addI, bytes4[] memory remI,
-        address migrator, bytes memory _calldata
+        Facet[]  memory setF, 
+        bytes4[] memory addI,  bytes4[] memory remI,
+        address     migrator,  bytes    memory _calldata
     ) internal {
         CS storage cs = _cs();
         uint16 i; bitmap256 bitmap = cs.indexBitmap;
         for (     ; i < setF.length; i++) bitmap = _setFacet(cs, setF[i].index, setF[i].facet, bitmap);
-        for (i = 0; i < addI.length; i++) _setInterface(cs, addI[i], true);
-        for (i = 0; i < remI.length; i++) _setInterface(cs, remI[i], false);
+        for (i = 0; i < addI.length; i++)      _setInterface(cs, addI[i], true);
+        for (i = 0; i < remI.length; i++)      _setInterface(cs, remI[i], false);
         cs.indexBitmap = bitmap;
         _storageMigration(migrator, _calldata);
     }

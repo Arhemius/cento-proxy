@@ -9,26 +9,26 @@ import {Facet} from "src/structs/Facet.sol";
 
 abstract contract EventBuilders is EventAssertions, LibCentoTest {
 
-    function FacetAdded(Facet memory addf) internal pure returns (Event memory out) {
+    function FacetAdded(uint8 index, address facet) internal pure returns (Event memory out) {
         out = Event({
             selector: EVT_FACET_ADDED,
-            topics: W_(abi.encode(addf.index)),
-            data: abi.encode(addf.facet)
+            topics: W_(abi.encode(index)),
+            data: abi.encode(facet)
         });
     }
 
-    function FacetUpdated(Facet memory updf, address oldFacet) internal pure returns (Event memory out) {
+    function FacetUpdated(uint8 index, address facet, address oldFacet) internal pure returns (Event memory out) {
         out = Event({
             selector: EVT_FACET_UPDATED,
-            topics: W_(abi.encode(updf.index)),
-            data: abi.encode(oldFacet, updf.facet)
+            topics: W_(abi.encode(index)),
+            data: abi.encode(oldFacet, facet)
         });
     }
 
-    function FacetRemoved(Facet memory remf, address oldFacet) internal pure returns (Event memory out) {
+    function FacetRemoved(uint8 index, address oldFacet) internal pure returns (Event memory out) {
         out = Event({
             selector: EVT_FACET_REMOVED,
-            topics: W_(abi.encode(remf.index)),
+            topics: W_(abi.encode(index)),
             data: abi.encode(oldFacet)
         });
     }
@@ -63,6 +63,27 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
     }
 
 
+    function FacetsAdded(Facet_[] memory addF) internal pure returns (Event[] memory out) {
+        out = flattenSequence(EventsArr_(abi.encode($FacetsAdded(addF))));
+    }
+
+    function FacetsUpdated(Facet_[] memory updF, address[] memory oldFacets) internal pure returns (Event[] memory out) {
+        out = flattenSequence(EventsArr_(abi.encode($FacetsUpdated(updF, oldFacets))));
+    }
+        
+    function FacetsRemoved(Facet_[] memory remF, address[] memory oldFacets) internal pure returns (Event[] memory out) {
+        out = flattenSequence(EventsArr_(abi.encode($FacetsRemoved(remF, oldFacets))));
+    }
+
+    function InterfacesAdded(bytes4[] memory addI) internal pure returns (Event[] memory out) {
+        out = flattenSequence(EventsArr_(abi.encode($InterfacesAdded(addI))));
+    }
+
+    function InterfacesRemoved(bytes4[] memory remI) internal pure returns (Event[] memory out) {
+        out = flattenSequence(EventsArr_(abi.encode($InterfacesRemoved(remI))));
+    }
+
+
     function AtomicUpdate(
         Events memory removedFacets,
         Events memory updatedFacets,
@@ -71,14 +92,13 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         Events memory interfacesRemoved,
         Event  memory storageMigrationSucceeded
     ) internal pure returns (Event[] memory out) {
-
-        Event[] memory a = loop(EventsArr_(abi.encode(removedFacets)));
-        Event[] memory b = loop(EventsArr_(abi.encode(updatedFacets)));
-        Event[] memory c = loop(EventsArr_(abi.encode(addedFacets)));
-        Event[] memory d = loop(EventsArr_(abi.encode(interfacesAdded)));
-        Event[] memory e = loop(EventsArr_(abi.encode(interfacesRemoved)));
-        Event[] memory f =       EventArr_(abi.encode(storageMigrationSucceeded));
-
+        Event[] memory a = flattenSequence(EventsArr_(abi.encode(removedFacets)));
+        Event[] memory b = flattenSequence(EventsArr_(abi.encode(updatedFacets)));
+        Event[] memory c = flattenSequence(EventsArr_(abi.encode(addedFacets)));
+        Event[] memory d = flattenSequence(EventsArr_(abi.encode(interfacesAdded)));
+        Event[] memory e = flattenSequence(EventsArr_(abi.encode(interfacesRemoved)));
+        Event[] memory f = flatten                              (storageMigrationSucceeded);
+        
         uint256 len = a.length + b.length + c.length + d.length + e.length + f.length;
         out = new Event[](len); uint256 k;
         for (uint256 i; i < a.length; i++) out[k++] = a[i];
@@ -88,11 +108,11 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         for (uint256 i; i < e.length; i++) out[k++] = e[i];
         for (uint256 i; i < f.length; i++) out[k++] = f[i];
     }
-
-    function FacetsRemoved(Facet_[] memory remF, address[] memory oldFacets) internal pure returns (Events memory out) {
-        require(remF.length != 0, "FacetsRemoved: arrays should not be empty");
-        Facets      memory $facets = Facets({data: remF});
-        bytes32[][] memory topics = Topics_(toBytes32Array($facets.indices()));
+    
+    function $FacetsRemoved(Facet_[] memory remF, address[] memory oldFacets) internal pure returns (Events memory out) {
+        require(remF.length != 0 && oldFacets.length != 0, "FacetsRemoved: arrays should not be empty");
+        require(remF.length == oldFacets.length, "FacetsRemoved: arrays should have identical length");
+        bytes32[][] memory topics = Topics_(toBytes32Array(Facets({data: remF}).indices()));
         bytes[]     memory data = new bytes[](remF.length);
         for(uint256 i; i < data.length; ++i){
             data[i] = abi.encode(oldFacets[i]);
@@ -103,7 +123,7 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         });
     }
 
-    function FacetsUpdated(Facet_[] memory updF, address[] memory oldFacets) internal pure returns (Events memory out) {
+    function $FacetsUpdated(Facet_[] memory updF, address[] memory oldFacets) internal pure returns (Events memory out) {
         require(updF.length != 0 && oldFacets.length != 0, "FacetsUpdated: arrays should not be empty");
         require(updF.length == oldFacets.length, "FacetsUpdated: arrays should have identical length");
         Facets      memory $facets = Facets({data: updF});
@@ -119,7 +139,7 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         });
     }
 
-    function FacetsAdded(Facet_[] memory addF) internal pure returns (Events memory out) {
+    function $FacetsAdded(Facet_[] memory addF) internal pure returns (Events memory out) {
         require(addF.length != 0, "FacetsAdded: arrays should not be empty");
         Facets      memory $facets = Facets({data: addF});
         bytes32[][] memory topics = Topics_(toBytes32Array($facets.indices()));
@@ -134,7 +154,7 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         });
     }
 
-    function InterfacesAdded(bytes4[] memory addI) internal pure returns (Events memory out) {
+    function $InterfacesAdded(bytes4[] memory addI) internal pure returns (Events memory out) {
         require(addI.length != 0, "InterfacesAdded: arrays should not be empty");
         bytes[] memory data = new bytes[](addI.length);
         for(uint256 i; i < data.length; ++i){
@@ -146,7 +166,7 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         });
     }
 
-    function InterfacesRemoved(bytes4[] memory remI) internal pure returns (Events memory out) {
+    function $InterfacesRemoved(bytes4[] memory remI) internal pure returns (Events memory out) {
         require(remI.length != 0, "InterfacesRemoved: arrays should not be empty");
         bytes[] memory data = new bytes[](remI.length);
         for(uint256 i; i < data.length; ++i){
@@ -158,3 +178,19 @@ abstract contract EventBuilders is EventAssertions, LibCentoTest {
         });
     }
 }
+
+
+// How the builder should be built if no sequence builder is present:
+
+// function FacetsRemoved(Facet_[] memory remF, address[] memory oldFacets) internal pure returns (Event[] memory out) {
+//     require(remF.length != 0 && oldFacets.length != 0, "FacetsRemoved: arrays should not be empty");
+//     require(remF.length == oldFacets.length, "FacetsRemoved: arrays should have identical length");
+//     out = new Event[](remF.length);
+//     for(uint256 i; i < out.length; ++i){
+//         out[i] = Event({
+//             selector: EVT_FACET_REMOVED,
+//             topics: Topic_(bytes32(remF[i].index)),
+//             data: abi.encode(oldFacets[i])
+//         });
+//     }
+// }

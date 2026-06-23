@@ -7,16 +7,35 @@ import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 
 abstract contract LibCentoTM is LibCentoArrange, LibCentoAssert {
 
+    address private testTarget;
+
     function setUp() public virtual {
-        lc_OnSetup();
+        lc_create();
+        lc_bind();
+        lc_setup();
     }
 
-    //rewrite this for better customization
-    //use transient storage?
-    function lc_OnSetup() internal virtual {
-        address target = lc_createHarnessTarget();
-        h = LibCentoHarness(target);
+    // ---------------------------------------------------------------------
+    // Phase 1: construct system under test
+    // ---------------------------------------------------------------------
+
+    function lc_create() internal virtual {}
+
+    function target(address _target) internal {
+        testTarget = _target;
     }
 
-    function lc_createHarnessTarget() internal virtual returns(address) {}
+    // ---------------------------------------------------------------------
+    // Phase 2: connect test harness to system
+    // ---------------------------------------------------------------------
+
+    function lc_bind() internal virtual {
+        h = LibCentoHarness(testTarget);
+    }
+
+    // ---------------------------------------------------------------------
+    // Phase 3: scenario initialization (use this in tests)
+    // ---------------------------------------------------------------------
+
+    function lc_setup() internal virtual {}
 }

@@ -10,16 +10,13 @@ abstract contract EventAssertionsCore is Test {
     address internal constant ANY_EMITTER  = address(0);
     uint256 internal constant SINGLE_EVENT = type(uint256).max;
     uint256 internal constant NO_EVENT     = type(uint256).max - 1;
+    bytes4  internal constant NO_SELECTOR  = bytes4(keccak256("event.assertions.no.selector")); 
 
     function ANY_TOPIC() internal pure returns(bytes32[] memory) {
         return new bytes32[](0);
     }
 
     // ============ log getter functions =============
-
-    function recordLogs() internal {
-        vm.recordLogs();
-    }
 
     function getLogs() internal view returns (Vm.Log[] memory) {
         return vm.getRecordedLogs();
@@ -58,8 +55,8 @@ abstract contract EventAssertionsCore is Test {
         if (emitter == ANY_EMITTER) return;
         if (log.emitter != emitter) {
             Fail(i, string.concat("emitter mismatch.",
-            " Expected: ",  vm.toString(emitter),
-            " Actual: ",    vm.toString(log.emitter)));
+            " Expected: ",  vm.toString(abi.encodePacked(emitter)),
+            " Actual: ",    vm.toString(abi.encodePacked(log.emitter))));
         }
     }
 
@@ -69,8 +66,8 @@ abstract contract EventAssertionsCore is Test {
         }
         if (bytes4(log.topics[0]) != selector) {
             Fail(i, string.concat("selector mismatch.",
-            " Expected: ",  vm.toString(selector),
-            " Actual: ",    vm.toString(bytes4(log.topics[0]))));
+            " Expected: ",  vm.toString(abi.encodePacked(selector)),
+            " Actual: ",    vm.toString(abi.encodePacked(bytes4(log.topics[0])))));
         }
     }
 

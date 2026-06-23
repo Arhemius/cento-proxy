@@ -19,13 +19,13 @@ exclude_lints = [
     "screaming-snake-case-immutable",
     "unaliased-plain-import",
     "unused-import",
-    "unwrapped-modifier-logic",
+    # "unwrapped-modifier-logic",
     "mixed-case-variable",
     "pascal-case-struct"
 ]
 
 [fuzz]
-runs = 64
+runs = 16
 
 [profile.ci.fuzz]
 runs = 128

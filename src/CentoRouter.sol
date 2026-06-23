@@ -9,9 +9,20 @@ import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
 import { Facet } from "./structs/Facet.sol";
 
-contract CentoRouter is CentoControllers {
+// layout at erc7201("Cento.Router.Storage") =
+// = keccak256(abi.encode(uint256(keccak256(bytes("Cento.Router.Storage"))) - 1)) & ~bytes32(uint256(0xff))
+contract CentoRouter is CentoControllers layout at 0x7c723bf5b6bdbfa940afe81662f2b2267b91314b9b4fe8152805c27fc4077000 { 
 
     bytes32 private constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+
+    // bool private transient _locked;
+
+    // modifier nonReentrant() {
+    //     require(!_locked, "REENTRANCY_GUARD");
+    //     _locked = true;
+    //     _;
+    //     _locked = false;
+    // }
 
     constructor (address _contractOwner, address[3] memory facetAddresses) {
         lc.setContractOwner(_contractOwner);
@@ -33,6 +44,7 @@ contract CentoRouter is CentoControllers {
     function centoEntry() external payable {
         assembly {
             let size := calldatasize()
+            if lt(size, 5) { revert(0, 0) }
             let index := byte(0, calldataload(sub(size, 1)))
             let facet := sload(add(BASE_SLOT, index))
             if iszero(facet) { revert(0, 0) }
@@ -62,6 +74,6 @@ contract CentoRouter is CentoControllers {
             return(0, returndatasize())
         }
     }
-
+    // thanks to routing strategy, facets can also implement receive functions and handle payments there
     receive() external payable {}
 }

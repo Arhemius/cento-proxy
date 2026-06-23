@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
+import "support/etl/FacetArray/FacetArray.sol";
 import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "src/structs/Facet.sol";
 
@@ -17,17 +18,13 @@ abstract contract LibCentoArrange is LibCentoTest {
 
     function arrange_FullFacetArray(address facet) internal {
         require(facet != address(0), "Cannot fill array with zero addresses");
-        for (uint8 i; i < 256; ++i) h.setFacetAt(i, facet);
+        for (uint256 i; i < 256; ++i) h.setFacetAt(_unsafeToUint8(i), facet);
         h.setBitmap(FULL_BITMAP);
     }
 
     function arrange_FacetAt(uint8 index, address facet) internal {
         require(facet != address(0), "Cannot fill array with zero addresses");
         h.setFacetAtWithBitmap(index, facet);
-    }
-
-    function arrange_NoFacetAt(uint8 index) internal {
-        h.removeFacetAtWithBitmap(index);
     }
 
     function arrange_FacetsAt(Facet[] memory facets) internal {
@@ -64,22 +61,19 @@ abstract contract LibCentoArrange is LibCentoTest {
     // GIVEN — pure value generators
     // =============================================================
 
-    function given_EmptyFacetArray() internal pure returns (Facet[] memory) {
-        return new Facet[](0);
+    function given_EmptyFacetArray() internal pure returns (Facet_[] memory) {
+        return new Facet_[](0);
     }
 
     function given_FacetAt(uint8 index, address facet) internal pure returns (Facet memory) {
         return Facet({index: index, facet: facet});
     }
 
-    function given_SameFacetAt(uint8[] memory indices, address facet) internal pure returns (Facet[] memory arr) {
-        arr = new Facet[](indices.length);
-        for (uint256 i; i < indices.length; ++i) {
-            arr[i] = Facet({index: indices[i], facet: facet});
-        }
-    }
-
     function given_MigratorCall(bytes4 selector, bytes memory args) internal pure returns (bytes memory data) {
         return abi.encodeWithSelector(selector, args);
+    }
+
+    function given_MigratorCall(bytes4 selector) internal pure returns (bytes memory data) {
+        return abi.encodeWithSelector(selector);
     }
 }

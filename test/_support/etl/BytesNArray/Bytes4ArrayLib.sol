@@ -18,9 +18,10 @@ library B4Lib {
     function _decode(bytes memory data) private pure returns (bytes4[] memory output) {
         uint256[] memory arr = T.word(data);
         output = new bytes4[](arr.length);
+        uint256 mask = (1 << 224) - 1;
         for (uint256 i; i < arr.length; i++) {
-            require(arr[i] <= type(uint32).max, "B4: bytes overflow");
-            output[i] = bytes4(uint32(uint256(arr[i])));
+            require((arr[i] & mask) == 0, "B4: bytes overflow");
+            output[i] = bytes4(uint32(arr[i] >> 224));
         }
     }
 

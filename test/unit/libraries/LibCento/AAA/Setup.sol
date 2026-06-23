@@ -10,10 +10,17 @@ import {SimpleActors} from "support/actors/SimpleActors.sol";
 import {MigratorFactory} from "support/fixtures/Migrator.sol";
 import {LibCentoAdapter} from "support/adapters/LibCentoAdapter.sol";
 
-abstract contract LibCentoTestSetup is LibCentoTM, LibCentoAct, Interfaces, Facets, EIP7702EOA, SimpleActors, MigratorFactory {
+abstract contract LibCentoTestSetup is 
+    LibCentoTM, 
+    LibCentoAct, 
+    Interfaces, 
+    Facets, 
+    EIP7702EOA, 
+    SimpleActors, 
+    MigratorFactory {
 
-    function lc_createHarnessTarget() internal override returns (address) {
+    function lc_create() internal virtual override {
         lc = new LibCentoAdapter();
-        return address(lc);
+        target(address(lc));
     }
 }

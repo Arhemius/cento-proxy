@@ -5,7 +5,7 @@ import { DebugErasureAssert } from "./Assert.t.sol";
 import { console } from "forge-std/console.sol";
 import { LibBitmapAdapter } from "support/adapters/LibBitmapAdapter.sol";
 import { ReferenceBitmapDebug } from "support/oracles/ReferenceBitmapDebug.sol";
-import { LibCentoAdapter } from "support/adapters/LibCentoAdapter.sol";
+import { LibCentoDebugAdapter } from "support/adapters/LibCentoDebugAdapter.sol";
 import { ReferenceCentoDebug } from "support/oracles/ReferenceCentoDebug.sol";
 
 
@@ -20,7 +20,7 @@ contract DebugErasureTest is DebugErasureAssert {
         then_DebugModifiersAreErased(address(plainBitmap), address(instrumentedBitmap));
 
         console.log("\n  === LibCento ===");
-        LibCentoAdapter plainCento = new LibCentoAdapter();
+        LibCentoDebugAdapter plainCento = new LibCentoDebugAdapter();
         ReferenceCentoDebug instrumentedCento = new ReferenceCentoDebug();
         then_DebugModifiersAreErased(address(plainCento), address(instrumentedCento));
     }

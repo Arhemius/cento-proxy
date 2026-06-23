@@ -38,6 +38,7 @@ abstract contract EventBuiltins is EventStructs {
         return abi.decode(Arr_(abi.encode(data)), (SourcedTraces[]));
     }
 
+    // works only for structs with dynamic fields
     function Arr_(bytes memory data) private pure returns (bytes memory) {
         assembly {
             if lt(mload(data), 0x60) { revert(0, 0) }
@@ -51,6 +52,10 @@ abstract contract EventBuiltins is EventStructs {
             mstore(add(data, 0x40), div(firstOffset, 0x20))
         }
         return data;
+    }
+
+    function EMPTY_TOPICS() internal pure returns (bytes32[][] memory out) {
+        out = new bytes32[][](0);
     }
 
     function EMPTY_TOPICS(uint256 n) internal pure returns (bytes32[][] memory out) {
@@ -89,29 +94,26 @@ abstract contract EventBuiltins is EventStructs {
         }
     }
 
-    function EMPTY_TOPIC() internal pure returns (bytes32[][] memory out) {
-        out = new bytes32[][](0);
+    function EMPTY_TOPIC() internal pure returns (bytes32[] memory out) {
+        out = new bytes32[](0);
     }
 
-    function Topic_(bytes32 t0) internal pure returns (bytes32[][] memory out) {
-        out = new bytes32[][](1);
-        out[0] = new bytes32[](1);
-        out[0][0] = t0;
+    function Topic_(bytes32 t0) internal pure returns (bytes32[] memory out) {
+        out = new bytes32[](1);
+        out[0] = t0;
     }
 
-    function Topic_(bytes32 t0, bytes32 t1) internal pure returns (bytes32[][] memory out) {
-        out = new bytes32[][](1);
-        out[0] = new bytes32[](2);
-        out[0][0] = t0;
-        out[0][1] = t1;
+    function Topic_(bytes32 t0, bytes32 t1) internal pure returns (bytes32[] memory out) {
+        out = new bytes32[](2);
+        out[0] = t0;
+        out[1] = t1;
     }
 
-    function Topic_(bytes32 t0, bytes32 t1, bytes32 t2) internal pure returns (bytes32[][] memory out) {
-        out = new bytes32[][](1);
-        out[0] = new bytes32[](3);
-        out[0][0] = t0;
-        out[0][1] = t1;
-        out[0][2] = t2;
+    function Topic_(bytes32 t0, bytes32 t1, bytes32 t2) internal pure returns (bytes32[] memory out) {
+        out = new bytes32[](3);
+        out[0] = t0;
+        out[1] = t1;
+        out[2] = t2;
     }
 
     function EMPTY_DATA(uint256 n) internal pure returns (bytes[] memory out) {

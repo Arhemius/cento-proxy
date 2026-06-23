@@ -26,11 +26,11 @@ contract ReferenceCentoDebug is ILibCento {
                 if (old == facet) return bitmap;
                 emit FacetUpdated(index, old, facet);
             } else {
-                bitmap.fillSlotAt(index);
+                bitmap = bitmap.fillSlotAt(index);
                 emit FacetAdded(index, facet);
             }
         } else {
-            bitmap.clearSlotAt(index);
+            bitmap = bitmap.clearSlotAt(index);
             emit FacetRemoved(index, cs.facets[index]);
         }
         cs.facets[index] = facet;

@@ -14,7 +14,6 @@ abstract contract LibBitmapTest is Test {
     bitmap256 immutable EMPTY_BITMAP = w(0);
     bitmap256 immutable FULL_BITMAP = w(type(uint256).max);
 
-    //maybe move function selector and error constants to Setup.sol?
     bytes4 constant POPFIRST_FILLED_SLOT = IBitmap.popFirstFilledSlot.selector;
     bytes4 constant GET_FIRST_EMPTY_SLOT = IBitmap.getFirstEmptySlot.selector;
 

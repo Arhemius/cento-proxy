@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {Facet} from "src/structs/Facet.sol";
-import { CentoStorage as CS } from "src/structs/CentoStorage.sol";
 
 interface ILibCento {
 

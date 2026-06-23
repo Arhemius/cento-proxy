@@ -7,9 +7,85 @@ import {MultiEventAssertions} from "./MultiEventAssertions.sol";
 
 abstract contract EventAssertions is MultiEventAssertions, EventBuiltins {
 
+    // These objects are used in tests if you use flatten- functions
+
+    function SKIP_EVENT() internal pure returns (Event memory) {
+        return Event({
+            selector: NO_SELECTOR, 
+            topics:   ANY_TOPIC(), 
+            data:     ANY_DATA
+        });
+    }
+
+    function SKIP_SOURCED_EVENT() internal pure returns (SourcedEvent memory) {
+        return SourcedEvent({
+            emitter:  ANY_EMITTER,
+            selector: NO_SELECTOR, 
+            topics:   ANY_TOPIC(), 
+            data:     ANY_DATA
+        });
+    }
+
+    function SKIP_TRACE() internal pure returns (Trace memory) {
+        return Trace({
+            index:    0,
+            selector: NO_SELECTOR, 
+            topics:   ANY_TOPIC(), 
+            data:     ANY_DATA
+        });
+    }
+
+    function SKIP_SOURCED_TRACE() internal pure returns (SourcedTrace memory) {
+        return SourcedTrace({
+            emitter:  ANY_EMITTER,
+            index:    0,
+            selector: NO_SELECTOR, 
+            topics:   ANY_TOPIC(), 
+            data:     ANY_DATA
+        });
+    }
+
+    function SKIP_EVENTS() internal pure returns (Events memory) {
+        return Events({
+            selector: NO_SELECTOR,
+            topics:   EMPTY_TOPICS(),
+            data:     EMPTY_DATA()
+        });
+    }
+
+    function SKIP_SOURCED_EVENTS() internal pure returns (SourcedEvents memory) {
+        return SourcedEvents({
+            emitter:  new address[](0),
+            selector: NO_SELECTOR, 
+            topics:   EMPTY_TOPICS(),
+            data:     EMPTY_DATA()
+        });
+    }
+
+    function SKIP_TRACES() internal pure returns (Traces memory) {
+        return Traces({
+            indices:  new uint256[](0),
+            selector: NO_SELECTOR, 
+            topics:   EMPTY_TOPICS(), 
+            data:     EMPTY_DATA()
+        });
+    }
+
+    function SKIP_SOURCED_TRACES() internal pure returns (SourcedTraces memory) {
+        return SourcedTraces({
+            emitter:  new address[](0),
+            indices:  new uint256[](0),
+            selector: NO_SELECTOR, 
+            topics:   EMPTY_TOPICS(), 
+            data:     EMPTY_DATA()
+        });
+    }
+
     // ============================================================
     //                loop functions for builders 
     //               (4 functions, one per struct)
+    //        usage implies you can't skip this event type
+    //       for shallow structures - use flatten- functions
     //     !!! loop functions do not to accept empty arrays !!!
     //   if something in event sequence gets skipped - use Traces 
     // ============================================================
@@ -128,6 +204,8 @@ abstract contract EventAssertions is MultiEventAssertions, EventBuiltins {
         }
     }
 
+    // ============== Helper Functions ==============
+
     function checkArrayLength(string memory comparisonObject, uint256 actual, uint256 expected, string memory revertSource) 
         private pure {
         require(actual == expected,  string.concat(
@@ -152,5 +230,83 @@ abstract contract EventAssertions is MultiEventAssertions, EventBuiltins {
         
     function max(uint256 a, uint256 b) private pure returns (uint256) {
         return a >= b ? a : b;
+    }
+
+    // ============================================================
+    //              flatten- functions for builders 
+    //          (8 functions, one per struct (Event(s)))
+    //    do not support skips whithin loop types - use Traces
+    // ============================================================
+
+    function flatten(Event memory spec) internal pure returns (Event[] memory out) {
+        if (spec.selector == NO_SELECTOR)   return new Event[](0);
+                                            return EventArr_(abi.encode(spec));
+    }
+
+    function flatten(SourcedEvent memory spec) internal pure returns (SourcedEvent[] memory out) {
+        if (spec.selector == NO_SELECTOR)   return new SourcedEvent[](0);
+                                            return SourcedEventArr_(abi.encode(spec));
+    }
+
+    function flatten(Trace memory spec) internal pure returns (Trace[] memory out) {
+        if (spec.selector == NO_SELECTOR)   return new Trace[](0);
+                                            return TraceArr_(abi.encode(spec));
+    }
+
+    function flatten(SourcedTrace memory spec) internal pure returns (SourcedTrace[] memory out) {
+        if (spec.selector == NO_SELECTOR)   return new SourcedTrace[](0);
+                                            return SourcedTraceArr_(abi.encode(spec));
+    }
+
+    function flattenSequence(Events[] memory specs) internal pure returns (Event[] memory out){
+        uint256 count; uint256 k;
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) ++count;
+        }
+        if (count == 0) return new Event[](0);
+        Events[] memory filtered = new Events[](count);
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) filtered[k++] = specs[i];
+        }
+        return loop(filtered);
+    }
+
+    function flattenSequence(SourcedEvents[] memory specs) internal pure returns (SourcedEvent[] memory out){
+        uint256 count; uint256 k;
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) ++count;
+        }
+        if (count == 0) return new SourcedEvent[](0);
+        SourcedEvents[] memory filtered = new SourcedEvents[](count);
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) filtered[k++] = specs[i];
+        }
+        return loop(filtered);
+    }
+
+    function flattenSequence(Traces[] memory specs) internal pure returns (Trace[] memory out){
+        uint256 count; uint256 k;
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) ++count;
+        }
+        if (count == 0) return new Trace[](0);
+        Traces[] memory filtered = new Traces[](count);
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) filtered[k++] = specs[i];
+        }
+        return loop(filtered);
+    }
+
+    function flattenSequence(SourcedTraces[] memory specs) internal pure returns (SourcedTrace[] memory out){
+        uint256 count; uint256 k;
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) ++count;
+        }
+        if (count == 0) return new SourcedTrace[](0);
+        SourcedTraces[] memory filtered = new SourcedTraces[](count);
+        for (uint256 i; i < specs.length; ++i) {
+            if (specs[i].selector != NO_SELECTOR) filtered[k++] = specs[i];
+        }
+        return loop(filtered);
     }
 }

@@ -6,9 +6,6 @@ import {Facet} from "src/structs/Facet.sol";
 
 abstract contract Facets {
 
-    Facet internal facetZero;
-    Facet internal facetMid;
-    Facet internal facetMax;
     ValidContract internal FacetA;
     ValidContract internal FacetB;
     address internal facetA;
@@ -19,8 +16,5 @@ abstract contract Facets {
         FacetB      = new ValidContract();
         facetA      = address(FacetA);
         facetB      = address(FacetB);
-        facetZero   = Facet({index: 0,    facet: facetA});
-        facetMid    = Facet({index: 127,  facet: facetA});
-        facetMax    = Facet({index: 255,  facet: facetA});
     }
 }

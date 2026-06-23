@@ -2,11 +2,13 @@
 pragma solidity ^0.8.29;
 
 import {LibCentoTest} from "./Base.t.sol";
+import {Facet} from "src/structs/Facet.sol";
 import {bitmap256} from "src/libraries/LibBitmap.sol";
 import {ErrorAssertions} from "support/helpers/ErrorAssertions.sol";
-import {EventBuilders} from "./Builders.sol";
+import {EventBuilders} from "./EventBuilders.sol";
+import {ErrorBuilders} from "./ErrorBuilders.sol";
 
-abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders {
+abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders, ErrorBuilders {
 
     // =============================================================
     // Storage — Facets
@@ -21,9 +23,15 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
     }
 
     function then_AllFacetsZeroExcept(uint8 index) internal view {
-        for (uint8 i; i < 256; ++i) {
-            if (i == index) continue;
-            assertEq(h.facetAt(i), address(0));
+        for (uint256 i; i < 256; ++i) {
+            if (_unsafeToUint8(i) == index) continue;
+            assertEq(h.facetAt(_unsafeToUint8(i)), address(0));
+        }
+    }
+
+    function then_FacetsAt(Facet[] memory facets) internal view {
+        for (uint256 i; i < facets.length; ++i) {
+            then_FacetAt(facets[i].index, facets[i].facet);
         }
     }
 
@@ -40,13 +48,13 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
     }
 
     function then_InterfacesSupported(bytes4[] memory interfaceIds) internal view {
-        for (uint256 i; i<interfaceIds.length; ++i){
+        for (uint256 i; i<interfaceIds.length; ++i) {
             then_InterfaceSupported(interfaceIds[i]);
         }
     }
 
     function then_InterfacesNotSupported(bytes4[] memory interfaceIds) internal view {
-        for (uint256 i; i<interfaceIds.length; ++i){
+        for (uint256 i; i<interfaceIds.length; ++i) {
             then_InterfaceNotSupported(interfaceIds[i]);
         }
     }
@@ -59,10 +67,6 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
         assertEq(h.getContractOwner(), expected);
     }
 
-    function then_OwnerIsZero() internal view {
-        assertEq(h.getContractOwner(), address(0));
-    }
-
     // =============================================================
     // Storage - Bitmap
     // =============================================================
@@ -71,31 +75,21 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
         then_BitmapIs(h.bitmap(), expected);
     }
 
-    function then_StorageBitmap_SlotOccupied(uint8 index) internal view {
-        then_SlotOccupied(h.bitmap(), index);
-    }
-
-    function then_StorageBitmap_SlotEmpty(uint8 index) internal view {
-        then_SlotEmpty(h.bitmap(), index);
-    }
-
-    function then_StorageBitmap_Empty() internal view {
-        then_BitmapEmpty(h.bitmap());
-    }
-
-    function then_StorageBitmap_Full() internal view {
-        then_BitmapFull(h.bitmap());
-    }
-
     // =============================================================
     // Cento-Structure Invariants (CSI)
     // =============================================================
 
-    function then_FacetBitmapCSI_Holds() internal view {
-        for (uint8 i; i < 256; ++i) {
-            bool occupied = h.bitmap().isSlotOccupied(i);
-            bool facetExists = (h.facetAt(i) != address(0));
-            assertEq(occupied, facetExists, string.concat("FacetBitmapCSI mismatch at index", vm.toString(i)));
+    function then_FacetBitmapCSI_Holds(bitmap256 bitmap) internal view {
+        for (uint256 i; i < 256; ++i) {
+            bool occupied = bitmap.isSlotOccupied(_unsafeToUint8(i));
+            bool facetExists = (h.facetAt(_unsafeToUint8(i)) != address(0));
+            if (occupied != facetExists) {
+                revert (string.concat("FacetBitmapCSI mismatch at index", vm.toString(i)));
+            }
         }
+    }
+
+    function then_ValueIs(uint256 actual, uint256 expected) internal pure {
+        assertEq(actual, expected);
     }
 }
