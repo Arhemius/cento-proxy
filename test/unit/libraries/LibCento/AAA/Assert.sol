@@ -35,16 +35,35 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
         }
     }
 
+    function then_FacetAddressesMatch(address actual, address expected) internal pure {
+        assertEq(actual, expected);
+    }
+
+    function then_FacetArrayAddressesMatch(address[] memory actual, address[] memory expected) internal pure {
+        require(actual.length == expected.length, "Facet address array length mismatch");
+        for (uint256 i; i < actual.length; ++i) {
+            assertEq(actual[i], expected[i]);
+        }
+    }
+
+    function then_FacetArraysMatch(Facet[] memory actual, Facet[] memory expected) internal pure {
+        require(actual.length == expected.length, "Facet array length mismatch");
+        for (uint256 i; i < actual.length; ++i) {
+            assertEq(actual[i].facet, expected[i].facet);
+            assertEq(actual[i].index, expected[i].index);
+        }
+    }
+
     // =============================================================
     // Storage — Interfaces
     // =============================================================
 
     function then_InterfaceSupported(bytes4 interfaceId) internal view {
-        assertTrue(h.supportsInterface(interfaceId));
+        assertTrue(h._supportsInterface(interfaceId));
     }
 
     function then_InterfaceNotSupported(bytes4 interfaceId) internal view {
-        assertFalse(h.supportsInterface(interfaceId));
+        assertFalse(h._supportsInterface(interfaceId));
     }
 
     function then_InterfacesSupported(bytes4[] memory interfaceIds) internal view {
@@ -57,6 +76,10 @@ abstract contract LibCentoAssert is LibCentoTest, ErrorAssertions, EventBuilders
         for (uint256 i; i<interfaceIds.length; ++i) {
             then_InterfaceNotSupported(interfaceIds[i]);
         }
+    }
+
+    function then_SupportStatusMatches(bool actual, bool expected) internal pure {
+        assertEq(actual, expected);
     }
 
     // =============================================================

@@ -22,7 +22,7 @@ abstract contract LibCentoHarness {
         return CS().indexBitmap;
     }
 
-    function supportsInterface(bytes4 id) external view returns (bool) {
+    function _supportsInterface(bytes4 id) external view returns (bool) {
         return CS().supportedInterfaces[id];
     }
 

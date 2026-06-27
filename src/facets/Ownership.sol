@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { LibCento } from "../libraries/LibCento.sol";
 
-contract OwnershipFacet is IERC173{
+contract Ownership is IERC173{
 
     function owner() external override view returns (address owner_) {
         owner_ = LibCento.contractOwner();

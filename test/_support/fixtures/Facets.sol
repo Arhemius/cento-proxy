@@ -12,9 +12,9 @@ abstract contract Facets {
     address internal facetB;
 
     constructor() {
-        FacetA      = new ValidContract();
-        FacetB      = new ValidContract();
-        facetA      = address(FacetA);
-        facetB      = address(FacetB);
+        FacetA = new ValidContract();
+        FacetB = new ValidContract();
+        facetA = address(FacetA);
+        facetB = address(FacetB);
     }
 }

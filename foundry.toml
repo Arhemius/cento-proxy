@@ -3,8 +3,9 @@ src = "src"
 out = "out"
 libs = ["lib"]
 solc = "0.8.33"
-no_match_coverage = "(test|script)"
+no_match_coverage = "(test|script|interaction)"
 evm_version = "prague"
+fs_permissions = [{ access = "read-write", path = "./config" }]
 
 [profile.release]
 optimizer = true
@@ -21,7 +22,8 @@ exclude_lints = [
     "unused-import",
     # "unwrapped-modifier-logic",
     "mixed-case-variable",
-    "pascal-case-struct"
+    "pascal-case-struct",
+    "unsafe-cheatcode"
 ]
 
 [fuzz]

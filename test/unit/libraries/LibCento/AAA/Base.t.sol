@@ -6,10 +6,9 @@ import {ILibCento} from "support/interfaces/ILibCento.sol";
 import {LibCentoAdapter} from "support/adapters/LibCentoAdapter.sol";
 import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 import {LibBitmapTM} from "../../LibBitmap/AAA/_LibBitmapTM.sol";
-import {$Execute} from "support/helpers/_Execute.sol";
 import {Facet} from "src/structs/Facet.sol";
 
-abstract contract LibCentoTest is Test, LibBitmapTM, $Execute {
+abstract contract LibCentoTest is Test, LibBitmapTM {
 
     bytes4 constant EVT_FACET_ADDED                 = bytes4(ILibCento.FacetAdded.selector);
     bytes4 constant EVT_FACET_UPDATED               = bytes4(ILibCento.FacetUpdated.selector);

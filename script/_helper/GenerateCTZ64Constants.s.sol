@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 // forge-lint: disable-next-line(unaliased-plain-import)
-import {console2, Script} from "../lib/forge-std/src/Script.sol";
+import {console2, Script} from "forge-std/Script.sol";
 
 contract GenerateCTZ64Constants is Script {
     uint64 internal constant MAGIC = 0x03f79d71b4cb0a89;

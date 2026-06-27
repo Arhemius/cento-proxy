@@ -3,12 +3,13 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapTest} from "./Base.t.sol";
 import {bitmap256, u} from "src/libraries/LibBitmap.sol";
+import {ErrorBuilders} from "./ErrorBuilders.sol";
 
 /**
  * @title LibBitmap Assert Layer
  * @notice THEN clauses - interface compliance verification
  */
-abstract contract LibBitmapAssert is LibBitmapTest {
+abstract contract LibBitmapAssert is LibBitmapTest, ErrorBuilders {
 
     // === Output Verification ===
 
