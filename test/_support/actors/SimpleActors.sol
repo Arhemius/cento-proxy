@@ -11,5 +11,7 @@ abstract contract SimpleActors is Test {
     constructor() {
         owner = makeAddr("owner");
         user  = makeAddr("user");
+        vm.deal(owner, 10 ether);
+        vm.deal(user,   5 ether);
     }
 }

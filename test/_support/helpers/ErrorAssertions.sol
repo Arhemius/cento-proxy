@@ -3,8 +3,9 @@ pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
 import {ErrorContext} from "./ErrorContext.sol";
+import {ErrorBuildersBasic} from "./ErrorBuilders.sol";
 
-abstract contract ErrorAssertions is Test, ErrorContext {
+abstract contract ErrorAssertions is Test, ErrorContext, ErrorBuildersBasic {
 
     function then_Reverted() internal view {
         if (!Err.captured) {

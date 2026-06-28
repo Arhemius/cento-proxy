@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 contract ValidContract {
     
-    function dummy() external pure returns (uint256) { 
-        return 1; 
+    function dummy() external pure returns (bool) { 
+        return true; 
     }
 }

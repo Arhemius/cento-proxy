@@ -13,8 +13,9 @@ contract CentoRouter {
     bytes4  constant FACET_NOT_FOUND_SELECTOR = 0xca05c783;
 
     bytes32 private constant BASE_SLOT    = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
-    uint8   private constant ERC165_INDEX = 1;
-    uint8   private constant ERC173_INDEX = 2;
+    uint8   private constant ERC173_INDEX = 1;
+    uint8   private constant ERC165_INDEX = 2;
+
 
     constructor (address _contractOwner, address[3] memory facetAddresses) {
         lc.setContractOwner(_contractOwner);
@@ -48,6 +49,7 @@ contract CentoRouter {
             case 0xf2fde38b { executeFacet(ERC173_INDEX, cds, 0) }
             executeFacet(byte(0, calldataload(sub(cds, 1))), cds, 1)
 
+            // inline functions are impossible to cover in the eyes of forge coverage
             function executeFacet(idx, totalSize, stripLen) {
                 let facet := sload(add(BASE_SLOT, idx))
                 if iszero(facet) { 
