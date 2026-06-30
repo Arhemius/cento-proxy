@@ -4,13 +4,14 @@ pragma solidity ^0.8.29;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
+import {Facet} from "src/structs/Facet.sol";
 
 abstract contract EnvHelpers is Script {
 
     using stdJson for string;
 
-    string private constant OWNER_CONFIG_PATH  = "config/owner.json";
-    string private constant ROUTER_CONFIG_PATH = "config/router.json";
+    string private constant OWNER_CONFIG_PATH  = "logs/config/owner.json";
+    string private constant ROUTER_CONFIG_PATH = "logs/config/router.json";
 
     // -------------------------------------------------------------------------
     // Network
@@ -68,6 +69,34 @@ abstract contract EnvHelpers is Script {
 
         _ensureFileExists(ROUTER_CONFIG_PATH);
         vm.writeJson(vm.toString(router), ROUTER_CONFIG_PATH, string.concat(".", networkName));
+    }
+
+    // -------------------------------------------------------------------------
+    // Json
+    // -------------------------------------------------------------------------
+
+    function serializeFacets(Facet[] memory facets) internal pure returns (string memory json) {
+        json = "[";
+        for (uint256 i; i < facets.length; i++) {
+            if (i != 0) json = string.concat(json, ",");
+            json = string.concat(
+                json,
+                '{"index":',  vm.toString(facets[i].index),
+                ',"facet":"', vm.toString(facets[i].facet), '"}'
+            );
+        }
+        json = string.concat(json, "]");
+    }
+
+    function serializeInterfaces(bytes4[] memory interfaces) internal pure returns (string memory json) {
+        json = "[";
+        for (uint256 i; i < interfaces.length; i++) {
+            if (i != 0) json = string.concat(json, ",");
+            json = string.concat(
+                json, '"', vm.toString(interfaces[i]), '"'
+            );
+        }
+        json = string.concat(json, "]");
     }
 
     // -------------------------------------------------------------------------

@@ -40,6 +40,8 @@ contract UpgradeCento is Script, EnvHelpers {
     }
 
     function run() public {
+        // custom facets are deployed here (wrap with broadcast)
+
         // ========== EDIT THESE PARAMETERS ==========
         Facet[] memory setFacets = FacetArr(abi.encode(
             // Example: 
@@ -103,31 +105,33 @@ contract UpgradeCento is Script, EnvHelpers {
         saveReceipt(receipt);
 
         console.log("\n=== Upgrade Complete ===");
-        console.log("Receipt: receipts/upgrade_receipts/%s/%d.json", network, block.timestamp);
+        console.log("Receipt: logs/receipts/upgrade/%s/%d.json", network, block.timestamp);
     }
 
     function saveReceipt(UpgradeReceipt memory receipt) internal {
-        string memory root = "receipt";
-        string memory json = vm.serializeString (root, "network",     receipt.network     );
-                    json = vm.serializeAddress  (root, "router",      receipt.router      );
-                    json = vm.serializeAddress  (root, "migrator",    receipt.migrator    );
-                    json = vm.serializeAddress  (root, "executor",    receipt.executor    );
-                    json = vm.serializeUint     (root, "blockNumber", receipt.blockNumber );
-                    json = vm.serializeUint     (root, "timestamp",   receipt.timestamp   );
+        string memory facetChanges = serializeFacets(receipt.setFacets);
+        string memory addedInterfaces = serializeInterfaces(receipt.interfacesToAdd);
+        string memory removedInterfaces = serializeInterfaces(receipt.interfacesToRemove);
 
-        json = vm.serializeJsonType (root, "facets", "tuple(uint8 index,address facet)[]",
-            abi.encode(receipt.setFacets)
+        string memory json = string.concat(
+            "{",
+                '"network":"',    receipt.network, '",',
+                '"router":"',     vm.toString(receipt.router), '",',
+                '"migrator":"',   vm.toString(receipt.migrator), '",',
+                '"executor":"',   vm.toString(receipt.executor), '",',
+                '"blockNumber":', vm.toString(receipt.blockNumber), ',',
+                '"timestamp":',   vm.toString(receipt.timestamp), ',',
+                '"facets":',      facetChanges, ',',
+                '"addedInterfaces":',  addedInterfaces, ',',
+                '"removedInterfaces":',  removedInterfaces,
+            "}"
         );
-        json = vm.serializeJsonType(root, "interfacesToAdd", "bytes4[]",
-            abi.encode(receipt.interfacesToAdd)
-        );
-        json = vm.serializeJsonType(root, "interfacesToRemove", "bytes4[]",
-            abi.encode(receipt.interfacesToRemove)
-        );
+
         string memory path = string.concat(
-            "receipts/upgrade_receipts/", receipt.network, "/",
+            "logs/receipts/upgrade/", receipt.network, "/",
             vm.toString(receipt.timestamp), ".json"
         );
-        vm.writeJson(json, path);
+
+        vm.writeFile(path, json);
     }
 }

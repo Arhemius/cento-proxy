@@ -2,5 +2,5 @@
 pragma solidity ^0.8.29;
 
 library Debug {
-    bool constant ON = true;
+    bool constant ON = false;
 }

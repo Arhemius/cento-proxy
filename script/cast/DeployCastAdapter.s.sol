@@ -8,7 +8,7 @@ import {CastAdapter} from "./CastAdapter.sol";
 
 contract DeployCastAdapter is Script, EnvHelpers {
 
-    string private constant CONFIG_PATH = "config/cast_adapter.json";
+    string private constant CONFIG_PATH = "logs/config/cast_adapter.json";
 
     function run() external {
         string memory network = getNetworkName();
@@ -29,6 +29,6 @@ contract DeployCastAdapter is Script, EnvHelpers {
 
         _ensureFileExists(CONFIG_PATH);
         vm.writeJson(vm.toString(address(adapter)), CONFIG_PATH, string.concat(".", network));
-        console.log("\nconfig/cast_adapter.json updated.");
+        console.log("\nlogs/config/cast_adapter.json updated.");
     }
 }

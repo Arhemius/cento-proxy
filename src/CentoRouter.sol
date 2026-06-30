@@ -7,16 +7,17 @@ import { LibCento as lc } from "./libraries/LibCento.sol";
 import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
 import { Facet } from "./structs/Facet.sol";
+// import { CentoStorage as CS } from "./structs/CentoStorage.sol";
+// import { w } from "./libraries/LibBitmap.sol";
 
 contract CentoRouter { 
     /// @dev error FacetNotFound(uint8 index)
-    bytes4  constant FACET_NOT_FOUND_SELECTOR = 0xca05c783;
-
+    bytes4  private constant ERR_FACET_NOT_FOUND = 0xca05c783;
     bytes32 private constant BASE_SLOT    = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
     uint8   private constant ERC173_INDEX = 1;
     uint8   private constant ERC165_INDEX = 2;
 
-
+    // === Classic Diamond-like construction (expensive) ===
     constructor (address _contractOwner, address[3] memory facetAddresses) {
         lc.setContractOwner(_contractOwner);
 
@@ -33,6 +34,25 @@ contract CentoRouter {
 
         lc.atomicUpdate(facets, addInterfaces, new bytes4[](0), address(0), "");
     }
+
+    // === Optimized construction for cheaper deployment ===
+    // constructor (address _contractOwner, address[3] memory facetAddresses) {
+    //     CS storage cs = lc._cs();
+    //     cs.contractOwner = _contractOwner; 
+    //     emit lc.OwnershipTransferred(address(0), _contractOwner);
+    //     cs.facets[0] = facetAddresses[0]; emit lc.FacetAdded(0, facetAddresses[0]);
+    //     cs.facets[1] = facetAddresses[1]; emit lc.FacetAdded(1, facetAddresses[1]);
+    //     cs.facets[2] = facetAddresses[2]; emit lc.FacetAdded(2, facetAddresses[2]);
+    //     cs.indexBitmap = w(7); // 0b000000...00000111
+    //     cs.supportedInterfaces[type(IERC165).interfaceId] = true; 
+    //     emit lc.InterfaceAdded(type(IERC165).interfaceId);
+    //     cs.supportedInterfaces[type(IERC173).interfaceId] = true; 
+    //     emit lc.InterfaceAdded(type(IERC173).interfaceId);
+    //     cs.supportedInterfaces[type(IFacetManager).interfaceId] = true; 
+    //     emit lc.InterfaceAdded(type(IFacetManager).interfaceId);
+    //     cs.supportedInterfaces[type(IObservability).interfaceId] = true; 
+    //     emit lc.InterfaceAdded(type(IObservability).interfaceId);
+    // }
 
     // TODO: Write the Stage 2 generator script
     // You will have generator script and the config where you(dev) could specify the
@@ -53,7 +73,7 @@ contract CentoRouter {
             function executeFacet(idx, totalSize, stripLen) {
                 let facet := sload(add(BASE_SLOT, idx))
                 if iszero(facet) { 
-                    mstore(0x00, FACET_NOT_FOUND_SELECTOR)
+                    mstore(0x00, ERR_FACET_NOT_FOUND)
                     mstore(0x04, idx)
                     revert(0x00, 0x24)
                 }

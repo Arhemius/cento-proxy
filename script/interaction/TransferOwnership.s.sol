@@ -29,6 +29,6 @@ contract TransferOwnership is Script, EnvHelpers {
         vm.stopBroadcast();
 
         setOwnerAddress(network, newOwner);
-        console.log("\nconfig/owner.json updated.");
+        console.log("\nlogs/config/owner.json updated.");
     }
 }

@@ -27,10 +27,14 @@ contract GetFacets is Script, EnvHelpers {
         for (uint256 i = 0; i < facets.length; i++) {
             console.log("Index:", facets[i].index, " Facet:", facets[i].facet);
         }
-        string memory root = "facets";
-        string memory json = vm.serializeString (root, "network", network);
-                    json = vm.serializeAddress  (root, "router",  router);
-                    json = vm.serializeJsonType (root, "facets", "tuple(uint8 index,address facet)[]", abi.encode(facets));
+        string memory _facets = serializeFacets(facets);
+        string memory json = string.concat(
+            "{",
+                '"network":"', network, '",',
+                '"router":"', vm.toString(router), '",',
+                '"facets":', _facets,
+            "}"
+        );
 
         vm.writeFile(OUTPUT_PATH, json);
         console.log("\nlogs/facets.json updated.");

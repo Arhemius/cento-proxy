@@ -46,12 +46,9 @@ library CentoCall {
     // you must do abi.encodeCall when calling this function
     function _append(uint8 facet, bytes memory data) internal pure returns (bytes memory) {
         assembly {
-            mstore8(mload(0x40), facet)
-            mstore(data, add(mload(data), 1))
-            mstore(0x40, add(mload(0x40), 0x20))
-            // let len := mload(data)
-            // mstore8(add(add(data, 0x20), len), facet)
-            // mstore(data, add(len, 1))
+            let len := mload(data)
+            mstore8(add(add(data, 0x20), len), facet)
+            mstore(data, add(len, 1))
         }
         return data;
     }
