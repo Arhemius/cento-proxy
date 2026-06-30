@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {Facet} from "src/structs/Facet.sol";
+import {Facet} from "cento/structs/Facet.sol";
 
 interface ILibCento {
 

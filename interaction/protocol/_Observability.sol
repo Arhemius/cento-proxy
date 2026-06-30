@@ -3,9 +3,9 @@ pragma solidity ^0.8.29;
 
 import {Cento, $CentoProxy} from "../Cento.sol";
 import {CentoCall} from "../_CentoCall.sol";
-import {Facet} from "src/structs/Facet.sol";
-import {IERC165} from "src/interfaces/IERC165.sol";
-import {IObservability} from "src/interfaces/IObservability.sol";
+import {Facet} from "cento/structs/Facet.sol";
+import {IERC165} from "cento/interfaces/IERC165.sol";
+import {IObservability} from "cento/interfaces/IObservability.sol";
 
 library Observability {
 

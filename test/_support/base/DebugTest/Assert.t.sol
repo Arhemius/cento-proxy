@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import { Test } from "forge-std/Test.sol";
-import { Debug } from "src/libraries/LibDebug.sol";
+import { Debug } from "cento/libraries/LibDebug.sol";
 import { console } from "forge-std/console.sol";
 
 abstract contract DebugErasureAssert is Test {

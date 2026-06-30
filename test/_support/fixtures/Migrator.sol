@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {bitmap256} from "src/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/libraries/LibBitmap.sol";
 import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 import {ErrorContext} from "support/helpers/ErrorContext.sol";
 

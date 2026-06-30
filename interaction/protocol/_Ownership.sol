@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {Cento, $CentoProxy} from "../Cento.sol";
 import {CentoCall} from "../_CentoCall.sol";
-import {IERC173} from "src/interfaces/IERC173.sol";
+import {IERC173} from "cento/interfaces/IERC173.sol";
 
 library Ownership {
 

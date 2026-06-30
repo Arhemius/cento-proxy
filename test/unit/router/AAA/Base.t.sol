@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
-import {LibCentoTM} from "test/unit/libraries/LibCento/AAA/_LibCentoTM.sol";
+import {LibCentoTM} from "test/unit/libraries/cento/LibCento/AAA/_LibCentoTM.sol";
 import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapter.sol";
 import {$CentoProxy} from "interaction/Cento.sol";
 

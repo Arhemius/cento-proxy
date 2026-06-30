@@ -3,8 +3,8 @@ pragma solidity ^0.8.29;
 
 import {Cento, $CentoProxy} from "../Cento.sol";
 import {CentoCall} from "../_CentoCall.sol";
-import {Facet} from "src/structs/Facet.sol";
-import {IFacetManager} from "src/interfaces/IFacetManager.sol";
+import {Facet} from "cento/structs/Facet.sol";
+import {IFacetManager} from "cento/interfaces/IFacetManager.sol";
 
 library FacetManager {
 

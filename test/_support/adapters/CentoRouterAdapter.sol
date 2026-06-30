@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {CentoRouter} from "src/CentoRouter.sol";
+import {CentoRouter} from "cento/CentoRouter.sol";
 import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 
 contract CentoRouterAdapter is LibCentoHarness, CentoRouter {

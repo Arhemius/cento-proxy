@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {Facet} from "src/structs/Facet.sol";
-import {LibCento} from "src/libraries/LibCento.sol";
+import {Facet} from "cento/structs/Facet.sol";
+import {LibCento} from "cento/libraries/LibCento.sol";
 import {ILibCento} from "support/interfaces/ILibCento.sol";
-import {CentoStorage} from "src/structs/CentoStorage.sol";
+import {CentoStorage} from "cento/structs/CentoStorage.sol";
 
 // === pure contract implementation without storage harness tooling inheritance ===
 

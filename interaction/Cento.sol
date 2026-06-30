@@ -5,7 +5,7 @@ pragma solidity ^0.8.29;
 import {FacetManager} from "./protocol/_FacetManager.sol";
 import {Observability} from "./protocol/_Observability.sol";
 import {Ownership} from "./protocol/_Ownership.sol";
-import {CentoRouter} from "src/CentoRouter.sol";
+import {CentoRouter} from "cento/CentoRouter.sol";
 
 /// @dev Strongly-typed proxy handle (SDK boundary type)
 /// Rename it to how your protocol wants to be called <$AAVEv3>

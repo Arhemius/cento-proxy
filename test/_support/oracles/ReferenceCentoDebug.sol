@@ -2,9 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {ILibCento} from "support/interfaces/ILibCento.sol";
-import { CentoStorage as CS } from "src/structs/CentoStorage.sol";
-import { Facet } from "src/structs/Facet.sol";
-import { bitmap256 } from "src/libraries/LibBitmap.sol";
+import { CentoStorage as CS } from "cento/structs/CentoStorage.sol";
+import { Facet } from "cento/structs/Facet.sol";
+import { bitmap256 } from "cento/libraries/LibBitmap.sol";
 
 contract ReferenceCentoDebug is ILibCento {
 

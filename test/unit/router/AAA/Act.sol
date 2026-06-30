@@ -6,10 +6,10 @@ import {CentoCall} from "interaction/_CentoCall.sol";
 import {ValidContract} from "support/fixtures/ValidContract.sol";
 import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapter.sol";
 import {FacetManagerAdapter} from "support/adapters/FacetManagerAdapter.sol";
-import {Ownership} from "src/facets/Ownership.sol";
-import {IERC173} from "src/interfaces/IERC173.sol";
-import {IERC165} from "src/interfaces/IERC165.sol";
-import {Observability} from "src/facets/Observability.sol";
+import {Ownership} from "cento/facets/Ownership.sol";
+import {IERC173} from "cento/interfaces/IERC173.sol";
+import {IERC165} from "cento/interfaces/IERC165.sol";
+import {Observability} from "cento/facets/Observability.sol";
 import {Cento} from "interaction/Cento.sol";
 
 abstract contract CentoRouterAct is CentoRouterTest {

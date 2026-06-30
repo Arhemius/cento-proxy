@@ -4,13 +4,13 @@ pragma solidity ^0.8.29;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {CentoRouter} from "src/CentoRouter.sol";
-import {Ownership} from "src/facets/Ownership.sol";
-import {Observability} from "src/facets/Observability.sol";
-import {FacetManager} from "src/facets/FacetManager.sol";
+import {CentoRouter} from "cento/CentoRouter.sol";
+import {Ownership} from "cento/facets/Ownership.sol";
+import {Observability} from "cento/facets/Observability.sol";
+import {FacetManager} from "cento/facets/FacetManager.sol";
 import {EnvHelpers} from "../_helper/EnvironmentHelpers.s.sol";
 import {$CentoProxy} from "interaction/Cento.sol";
-import {Facet} from "src/structs/Facet.sol";
+import {Facet} from "cento/structs/Facet.sol";
 import "support/etl/FacetArray/FacetArray.sol";
 import "support/etl/BytesNArray/Bytes4Array.sol";
 
