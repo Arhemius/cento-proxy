@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {CentoRouterTestSetup} from "./AAA/Setup.sol";
 import {Cento} from "interaction/Cento.sol";
-import "support/etl/BytesNArray/Bytes4Array.sol";
+import "support/builtins/Builtins.sol";
 import {FacetManagerAdapter} from "support/adapters/FacetManagerAdapter.sol";
 import {OwnershipAdapter} from "support/adapters/OwnershipAdapter.sol";
 import {ObservabilityAdapter} from "support/adapters/ObservabilityAdapter.sol";

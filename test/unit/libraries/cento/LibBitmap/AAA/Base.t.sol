@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {Test} from "forge-std/Test.sol";
 import {IBitmap} from "support/interfaces/IBitmap.sol";
 import {bitmap256, w} from "cento/libraries/LibBitmap.sol";
-import {$Execute} from "support/helpers/_Execute.sol";
+import {$Execute} from "support/helpers/errors/_Execute.sol";
 
 /**
  * @title LibBitmap Base Test

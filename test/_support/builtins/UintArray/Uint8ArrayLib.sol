@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "../_ETL.sol";
+import {Word as W} from "../word/Word.sol";
 
 struct U8s {
     uint8[] data;
@@ -16,7 +16,7 @@ library U8Lib {
     }
 
     function _decode(bytes memory data) private pure returns (uint8[] memory output) {
-        uint256[] memory arr = T.word(data);
+        uint256[] memory arr = W.word(data);
         output = new uint8[](arr.length);
         for (uint256 i; i < arr.length; i++) {
             require(arr[i] <= type(uint8).max, "U8: overflow");

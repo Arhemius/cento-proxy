@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "cento/structs/Facet.sol";
 import {bitmap256} from "cento/libraries/LibBitmap.sol";
-import {ErrorAssertions} from "support/helpers/ErrorAssertions.sol";
+import {ErrorAssertions} from "support/helpers/errors/ErrorAssertions.sol";
 import {EventBuilders} from "./EventBuilders.sol";
 import {ErrorBuilders} from "./ErrorBuilders.sol";
 

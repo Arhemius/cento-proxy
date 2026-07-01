@@ -6,8 +6,7 @@ import {console} from "forge-std/console.sol";
 
 import {$CentoProxy} from "interaction/Cento.sol";
 import {Facet} from "cento/structs/Facet.sol";
-import "support/etl/FacetArray/FacetArray.sol";
-import "support/etl/BytesNArray/Bytes4Array.sol";
+import "support/builtins/Builtins.sol";
 import {EnvHelpers} from "../_helper/EnvironmentHelpers.s.sol";
 
 /**

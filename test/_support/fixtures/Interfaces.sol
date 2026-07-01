@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "support/etl/BytesNArray/Bytes4Array.sol";
+import "support/builtins/Builtins.sol";
 import {ILibCento} from "support/interfaces/ILibCento.sol";
 import {IBitmap} from "support/interfaces/IBitmap.sol";
 import {IERC165} from "cento/interfaces/IERC165.sol";

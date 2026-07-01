@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
 import {bitmap256, u} from "cento/libraries/LibBitmap.sol";
-import "support/etl/UintArray/Uint8Array.sol";
+import "support/builtins/Builtins.sol";
 
 /**
  * @title PopFirstFilledSlot Tests

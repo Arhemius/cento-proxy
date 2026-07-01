@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "../_ETL.sol";
+import {Word as W} from "../word/Word.sol";
 import {Facet} from "cento/structs/Facet.sol";
 
 struct Facet_ {
@@ -22,7 +22,7 @@ library FacetLib {
     }
 
     function _decode(bytes memory data) private pure returns (Facet_[] memory output) {
-        uint256[] memory arr = T.word(data);
+        uint256[] memory arr = W.word(data);
         require(arr.length % 2 == 0, "Facet: invalid encoding");
         uint256 n = arr.length / 2;
         output = new Facet_[](n);

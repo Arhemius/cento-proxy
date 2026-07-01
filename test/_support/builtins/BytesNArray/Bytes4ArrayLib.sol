@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "../_ETL.sol";
+import {Word as W} from "../word/Word.sol";
 
 struct B4s {
     bytes4[] data;
@@ -16,7 +16,7 @@ library B4Lib {
     }
 
     function _decode(bytes memory data) private pure returns (bytes4[] memory output) {
-        uint256[] memory arr = T.word(data);
+        uint256[] memory arr = W.word(data);
         output = new bytes4[](arr.length);
         uint256 mask = (1 << 224) - 1;
         for (uint256 i; i < arr.length; i++) {

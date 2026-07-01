@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import "support/etl/BytesNArray/Bytes4Array.sol";
+import "support/builtins/Builtins.sol";
 import {LibCentoTestSetup} from "./AAA/Setup.sol";
 
 contract SetInterfaceTest is LibCentoTestSetup {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "cento/structs/Facet.sol";
 import {bitmap256} from "cento/libraries/LibBitmap.sol";
-import "support/etl/BytesNArray/Bytes4Array.sol";
+import "support/builtins/Builtins.sol";
 
 /**
  * @title LibCento Act Layer
