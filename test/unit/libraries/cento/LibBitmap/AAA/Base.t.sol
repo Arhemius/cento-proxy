@@ -18,8 +18,6 @@ abstract contract LibBitmapTest is Test, $Execute {
     bytes4 constant POPFIRST_FILLED_SLOT = IBitmap.popFirstFilledSlot.selector;
     bytes4 constant GET_FIRST_EMPTY_SLOT = IBitmap.getFirstEmptySlot.selector;
 
-    bytes4 constant ERR_NO_FREE_SLOTS    = IBitmap.NoFreeSlots.selector;
-
     IBitmap internal implementation;
     IBitmap internal oracle;
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {CentoRouterTestSetup} from "./AAA/Setup.sol";
-import {Cento} from "interaction/Cento.sol";
+import {CentoV1} from "interaction/CentoV1.sol";
 import "support/builtins/Builtins.sol";
 import {FacetManagerAdapter} from "support/adapters/FacetManagerAdapter.sol";
 import {OwnershipAdapter} from "support/adapters/OwnershipAdapter.sol";
@@ -18,9 +18,9 @@ contract ConstructorTest is CentoRouterTestSetup {
 
     function test_Constructor_AddsFacets() public {
         when_ConstructCentoProxy(owner, [facetManager, ownership, observability]);
-        then_FacetAt(Cento.FACET_MANAGER, facetManager);
-        then_FacetAt(Cento.OWNERSHIP,     ownership);
-        then_FacetAt(Cento.OBSERVABILITY, observability);
+        then_FacetAt(CentoV1.FACET_MANAGER, facetManager);
+        then_FacetAt(CentoV1.OWNERSHIP,     ownership);
+        then_FacetAt(CentoV1.OBSERVABILITY, observability);
     }
 
     function test_Constructor_AddsInterfaces() public {

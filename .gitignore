@@ -14,6 +14,6 @@ docs/
 
 # Dotenv file
 .env
-# .gas-snapshot
+.gas-snapshot
 lcov.info
 lcov.info.pruned

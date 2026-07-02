@@ -4,13 +4,11 @@ pragma solidity ^0.8.29;
 import {CentoRouterTest} from "./Base.t.sol";
 import {CentoCall} from "interaction/_CentoCall.sol";
 import {ValidContract} from "support/fixtures/ValidContract.sol";
-import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapter.sol";
+import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapters.sol";
 import {FacetManagerAdapter} from "support/adapters/FacetManagerAdapter.sol";
-import {Ownership} from "cento/facets/Ownership.sol";
 import {IERC173} from "cento/interfaces/IERC173.sol";
 import {IERC165} from "cento/interfaces/IERC165.sol";
-import {Observability} from "cento/facets/Observability.sol";
-import {Cento} from "interaction/Cento.sol";
+import {CentoV1} from "interaction/CentoV1.sol";
 
 abstract contract CentoRouterAct is CentoRouterTest {
 
@@ -31,7 +29,7 @@ abstract contract CentoRouterAct is CentoRouterTest {
     }
 
     function when_InspectCalldata(bytes4 selector, bytes memory input) internal view returns (uint256 length, bytes memory output) {
-        bytes memory _calldata = CentoCall._append(Cento.FACET_MANAGER,
+        bytes memory _calldata = CentoCall._append(CentoV1.FACET_MANAGER,
             abi.encodePacked(selector, input)
         );
         return abi.decode(
@@ -41,7 +39,7 @@ abstract contract CentoRouterAct is CentoRouterTest {
     }
 
     function when_PropagateRevert() internal {
-        bytes memory _calldata = CentoCall._append(Cento.FACET_MANAGER, 
+        bytes memory _calldata = CentoCall._append(CentoV1.FACET_MANAGER, 
             abi.encodeCall(FacetManagerAdapter.revertError, ())
         );
         Execute(address(cr), _calldata);

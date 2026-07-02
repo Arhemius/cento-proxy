@@ -4,7 +4,6 @@ pragma solidity ^0.8.29;
 import "support/builtins/Builtins.sol";
 import {LibCentoTest} from "./Base.t.sol";
 import {EventAssertions} from "support/helpers/events/EventAssertions.sol";
-import {Facet} from "cento/structs/Facet.sol";
 
 abstract contract EventBuilders is EventAssertions, LibCentoTest {
 

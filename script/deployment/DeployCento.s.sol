@@ -9,11 +9,11 @@ import {Ownership} from "cento/facets/Ownership.sol";
 import {Observability} from "cento/facets/Observability.sol";
 import {FacetManager} from "cento/facets/FacetManager.sol";
 import {EnvHelpers} from "../_helper/EnvironmentHelpers.s.sol";
-import {$CentoProxy} from "interaction/Cento.sol";
+import {$CentoProxyV1} from "interaction/CentoV1.sol";
 import {Facet} from "cento/structs/Facet.sol";
-import "support/builtins/Builtins.sol";
+import {DeploymentConfig} from "./DeploymentConfig.sol";
 
-contract DeployCento is Script, EnvHelpers {
+contract DeployCento is Script, EnvHelpers, DeploymentConfig {
     struct DeploymentReceipt {
         string network;
         address router;
@@ -26,54 +26,31 @@ contract DeployCento is Script, EnvHelpers {
     }
 
     function run() public {
-        // custom facets are deployed here (wrap with broadcast)
-
-        // ========== EDIT THESE PARAMETERS ==========
-        Facet[] memory setFacets = FacetArr(abi.encode(
-            // Example: 
-            // 3, 0x1234567890123456789012345678901234567890, // 
-            // Cento.TOKEN_V1, address(readFacet(TokenV1)) // addresses of deployed facets can be stored elsewhere (in json)
-        ))._out();
-
-        bytes4[] memory addInterfaces = B4_(abi.encode(
-            // Example: 
-            // 0xabcdef01,
-            // type(IExample).interfaceId
-        ));
-
-        address migrator = address(0);
-
-        bytes memory migratorCalldata = ""; // abi.encodeCall();
-
-        // ==========================================
-
-
         string memory network = getNetworkName();
         address owner = getOwnerAddress(network);
         
-
         vm.startBroadcast();
 
         console.log("\n  === Cento Proxy Deployment ===\n");
         console.log("Owner: %s", owner);
         console.log("Network: %s\n", network);
-
         console.log("Deploying facets...");
-        address facetManagerFacet  = address(new FacetManager());
-        address ownershipFacet     = address(new Ownership());
-        address observabilityFacet = address(new Observability());
 
-        console.log("  FacetManager: %s", facetManagerFacet  );
-        console.log("  Ownership: %s",      ownershipFacet     );
-        console.log("  Observability: %s\n",  observabilityFacet );
+        (Facet[] memory setFacets,
+        bytes4[] memory addInterfaces,
+        address migrator, bytes memory migratorCalldata) = buildDeployment();
 
-        address[3] memory facets = [facetManagerFacet, ownershipFacet, observabilityFacet];
+        address[3] memory facets = deployCoreFacets();
+
+        console.log("  FacetManager: %s", facets[0]);
+        console.log("  Ownership: %s",      facets[1]);
+        console.log("  Observability: %s\n",  facets[2] );
 
         console.log("Deploying CentoRouter...");
-        CentoRouter router = new CentoRouter(owner, facets);
-        console.log("  Router: %s\n", address(router));
+        address router = deployRouter(owner, facets);
+        console.log("  Router: %s\n", router);
 
-        $CentoProxy CentoProxy = $CentoProxy.wrap(address(router));
+        $CentoProxyV1 CentoProxy = $CentoProxyV1.wrap(router);
         console.log("\nExecuting atomic upgrade...");
         CentoProxy.atomicUpdate(
             setFacets,
@@ -85,32 +62,49 @@ contract DeployCento is Script, EnvHelpers {
 
         vm.stopBroadcast();
 
-        Facet[] memory deployedFacets = new Facet[](setFacets.length + 3);
-        deployedFacets[0] = Facet({index: 0, facet: facetManagerFacet});
-        deployedFacets[1] = Facet({index: 1, facet: ownershipFacet});
-        deployedFacets[2] = Facet({index: 2, facet: observabilityFacet});
-        for(uint256 i = 0; i<setFacets.length; i++) {
-            deployedFacets[i+3] = setFacets[i];
-        }
-
-
-        DeploymentReceipt memory receipt = DeploymentReceipt({
-            network: network,
-            router: address(router),
-            installedFacets: deployedFacets,
-            addedInterfaces: addInterfaces,
-            migrator: migrator,
-            deployer: msg.sender,
-            blockNumber: block.number,
-            timestamp: block.timestamp
-        });
-
+        Facet[] memory deployedFacets = concatFacets(facets, setFacets);
+        DeploymentReceipt memory receipt = buildReceipt(network, router, deployedFacets);
         saveReceipt(receipt);
-        setRouterAddress(network, address(router));
+        setRouterAddress(network, router);
 
         console.log("=== Deployment Complete ===");
         console.log("Receipt: logs/receipts/deployment/%s/%d.json", network, block.timestamp);
         console.log("Config: logs/config/router.json");
+    }
+
+    function deployCoreFacets() internal returns (address[3] memory facets) {
+        facets[0] = address(new FacetManager());
+        facets[1] = address(new Ownership());
+        facets[2] = address(new Observability());
+    }
+
+    function deployRouter(address owner, address[3] memory facets) internal returns (address router) {
+        router = address(new CentoRouter(owner, facets));
+    }
+
+    function concatFacets(address[3] memory coreFacets, Facet[] memory setFacets) internal pure returns (Facet[] memory allFacets) {
+        allFacets = new Facet[](setFacets.length + 3);
+        allFacets[0] = Facet({index: 0, facet: coreFacets[0]});
+        allFacets[1] = Facet({index: 1, facet: coreFacets[1]});
+        allFacets[2] = Facet({index: 2, facet: coreFacets[2]});
+        for(uint256 i = 0; i<setFacets.length; i++) {
+            allFacets[i+3] = setFacets[i];
+        }
+    }
+
+    function buildReceipt(
+        string memory network,
+        address router,
+        Facet[] memory facets
+    ) internal view returns (DeploymentReceipt memory receipt) {
+        receipt.network = network;
+        receipt.router = router;
+        receipt.installedFacets = facets;
+        receipt.addedInterfaces = new bytes4[](0);
+        receipt.migrator = address(0);
+        receipt.deployer = msg.sender;
+        receipt.blockNumber = block.number;
+        receipt.timestamp = block.timestamp;
     }
 
     function saveReceipt(DeploymentReceipt memory receipt) internal {
@@ -137,4 +131,5 @@ contract DeployCento is Script, EnvHelpers {
 
         vm.writeFile(path, json);
     }
+
 }

@@ -3,8 +3,8 @@ pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
 import {LibCentoTM} from "test/unit/libraries/cento/LibCento/AAA/_LibCentoTM.sol";
-import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapter.sol";
-import {$CentoProxy} from "interaction/Cento.sol";
+import {CentoRouterAdapter} from "support/adapters/CentoRouterAdapters.sol";
+import {$CentoProxyV1} from "interaction/CentoV1.sol";
 
 abstract contract CentoRouterTest is Test, LibCentoTM {
 
@@ -15,6 +15,6 @@ abstract contract CentoRouterTest is Test, LibCentoTM {
     address internal ownership;
 
     CentoRouterAdapter internal cr;
-    $CentoProxy internal CentoProxy;
+    $CentoProxyV1 internal CentoProxy;
 
 }

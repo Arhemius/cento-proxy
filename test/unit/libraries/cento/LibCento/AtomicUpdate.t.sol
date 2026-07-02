@@ -4,8 +4,6 @@ pragma solidity ^0.8.29;
 import "support/builtins/Builtins.sol";
 import {LibCentoTestSetup} from "./AAA/Setup.sol";
 import {bitmap256, w} from "cento/libraries/LibBitmap.sol";
-import {StorageMigrator} from "support/fixtures/Migrator.sol";
-// import {Facet} from "cento/structs/Facet.sol";
 
 contract AtomicUpdateTest is LibCentoTestSetup {
 

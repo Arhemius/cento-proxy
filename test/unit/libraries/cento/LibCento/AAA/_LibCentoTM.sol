@@ -7,7 +7,7 @@ import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 
 abstract contract LibCentoTM is LibCentoArrange, LibCentoAssert {
 
-    address private testTarget;
+    address internal testTarget;
 
     function setUp() public virtual {
         lc_create();

@@ -3,22 +3,22 @@ pragma solidity ^0.8.29;
 
 import {CentoRouterTestSetup} from "./AAA/Setup.sol";
 import {FacetManagerAdapter} from "support/adapters/FacetManagerAdapter.sol";
-import {Cento} from "interaction/Cento.sol";
+import {CentoV1} from "interaction/CentoV1.sol";
 
 contract FallbackTest is CentoRouterTestSetup {
 
     function test_Dummy_FacetManager() public view {
-        bool out = when_CallDummy(Cento.FACET_MANAGER);
+        bool out = when_CallDummy(CentoV1.FACET_MANAGER);
         assertTrue(out);
     }
 
     function test_Dummy_Observability() public view {
-        bool out = when_CallDummy(Cento.OBSERVABILITY);
+        bool out = when_CallDummy(CentoV1.OBSERVABILITY);
         assertTrue(out);
     }
 
     function test_Dummy_Ownership() public view {
-        bool out = when_CallDummy(Cento.OWNERSHIP);
+        bool out = when_CallDummy(CentoV1.OWNERSHIP);
         assertTrue(out);
     }
 

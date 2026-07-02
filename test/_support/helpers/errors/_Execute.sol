@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {ErrorContext} from "./ErrorContext.sol";
 
 abstract contract $Execute is Test, ErrorContext {

@@ -4,10 +4,10 @@ pragma solidity ^0.8.29;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {$CentoProxy} from "interaction/Cento.sol";
+import {$CentoProxyV2} from "interaction/CentoV2.sol";
 import {Facet} from "cento/structs/Facet.sol";
-import "support/builtins/Builtins.sol";
 import {EnvHelpers} from "../_helper/EnvironmentHelpers.s.sol";
+import {UpgradeConfig} from "./UpgradeConfig.sol";
 
 /**
  * @title UpgradeCento
@@ -24,7 +24,7 @@ import {EnvHelpers} from "../_helper/EnvironmentHelpers.s.sol";
  *   - migrator: address of state migration contract (address(0) if none)
  *   - migratorCalldata: calldata to send to migrator (empty bytes if none)
  */
-contract UpgradeCento is Script, EnvHelpers {
+contract UpgradeCento is Script, EnvHelpers, UpgradeConfig {
 
     struct UpgradeReceipt {
         string network;
@@ -39,45 +39,24 @@ contract UpgradeCento is Script, EnvHelpers {
     }
 
     function run() public {
-        // custom facets are deployed here (wrap with broadcast)
-
-        // ========== EDIT THESE PARAMETERS ==========
-        Facet[] memory setFacets = FacetArr(abi.encode(
-            // Example: 
-            // 3, 0x1234567890123456789012345678901234567890,
-            // Cento.TOKEN_V1, address(readFacet(TokenV1)) // addresses of deployed facets can be stored elsewhere (in json)
-        ))._out();
-
-        bytes4[] memory addInterfaces = B4_(abi.encode(
-            // Example: 
-            // 0xabcdef01,
-            // type(IExample).interfaceId
-        ));
-
-        bytes4[] memory removeInterfaces = B4_(abi.encode(
-            // Same as above
-        ));
-
-        address migrator = address(0);
-
-        bytes memory migratorCalldata = ""; // abi.encodeCall();
-
-        // ==========================================
-
-        
         string memory network = getNetworkName();
         address owner  = getOwnerAddress(network);
         address router = getRouterAddress(network);
         require(router != address(0), "Router not found in config");
+
+        vm.startBroadcast(owner);
 
         console.log("=== Cento Proxy Upgrade ===\n");
         console.log("Router: %s", router);
         console.log("Network: %s", network);
         console.log("Owner: %s\n", owner);
 
-        vm.startBroadcast(owner);
+        (Facet[] memory setFacets,
+        bytes4[] memory addInterfaces,
+        bytes4[] memory removeInterfaces,
+        address migrator, bytes memory migratorCalldata) = buildUpgrade();
 
-        $CentoProxy CentoProxy = $CentoProxy.wrap(router);
+        $CentoProxyV2 CentoProxy = $CentoProxyV2.wrap(router);
         console.log("\nExecuting atomic upgrade...");
         CentoProxy.atomicUpdate(
             setFacets,
@@ -89,22 +68,40 @@ contract UpgradeCento is Script, EnvHelpers {
 
         vm.stopBroadcast();
 
-        UpgradeReceipt memory receipt = UpgradeReceipt({
-            network: network,
-            router: router,
-            setFacets: setFacets,
-            interfacesToAdd: addInterfaces,
-            interfacesToRemove: removeInterfaces,
-            migrator: migrator,
-            executor: owner,
-            blockNumber: block.number,
-            timestamp: block.timestamp
-        });
+        UpgradeReceipt memory receipt = buildReceipt(
+            network,
+            router,
+            setFacets,
+            addInterfaces,
+            removeInterfaces,
+            migrator,
+            owner
+        );
 
         saveReceipt(receipt);
 
         console.log("\n=== Upgrade Complete ===");
         console.log("Receipt: logs/receipts/upgrade/%s/%d.json", network, block.timestamp);
+    }
+
+    function buildReceipt(
+        string memory network,
+        address router,
+        Facet[] memory facets,
+        bytes4[] memory interfacesToAdd,
+        bytes4[] memory interfacesToRemove,
+        address migrator,
+        address executor
+    ) internal view returns (UpgradeReceipt memory receipt) {
+        receipt.network = network;
+        receipt.router = router;
+        receipt.setFacets = facets;
+        receipt.interfacesToAdd = interfacesToAdd;
+        receipt.interfacesToRemove = interfacesToRemove;
+        receipt.migrator = migrator;
+        receipt.executor = executor;
+        receipt.blockNumber = block.number;
+        receipt.timestamp = block.timestamp;
     }
 
     function saveReceipt(UpgradeReceipt memory receipt) internal {

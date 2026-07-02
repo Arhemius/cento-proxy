@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import "support/builtins/Builtins.sol";
-import {Facet} from "cento/structs/Facet.sol";
 import {ObservabilityTestSetup} from "./AAA/Setup.sol";
 
 contract GetFacetStateTest is ObservabilityTestSetup {

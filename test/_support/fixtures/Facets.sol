@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import {ValidContract} from "./ValidContract.sol";
-import {Facet} from "cento/structs/Facet.sol";
 
 abstract contract Facets {
 
