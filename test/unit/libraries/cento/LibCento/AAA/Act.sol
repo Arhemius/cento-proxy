@@ -14,14 +14,13 @@ abstract contract LibCentoAct is LibCentoTest {
 
     // === Public/Internal Functions ===
 
-    function when_AtomicUpdate(
-        uint8 config, 
-        Facet[] memory setF,
-        bytes4[] memory addI, bytes4[] memory remI,
-        address migrator_, bytes memory data
-    ) internal {
-        Record(config);
-        lc.atomicUpdate(setF, addI, remI, migrator_, data);
+    function when_SetFacet(uint8 config, uint8 index, address facet) internal returns (bitmap256 bitmap) {
+        bitmap = h.bitmap();
+        if (Errors(config)) {
+            Execute(address(lc), abi.encodeWithSelector(lc.setFacet.selector, index, facet, bitmap));
+        } else {
+            bitmap = lc.setFacet(index, facet, bitmap);
+        }
     }
 
     function when_SetContractOwner(uint8 config, address owner_) internal {
@@ -41,72 +40,29 @@ abstract contract LibCentoAct is LibCentoTest {
         owner_ = lc.contractOwner();
     }
 
-    // === Private Branch Harnesses ===
-
-    function when_SetFacet(uint8 config, uint8 index, address facet) internal returns (bitmap256 bitmap) {
-        Facet[] memory setF = new Facet[](1);
-        setF[0] = Facet({index: index, facet: facet});
+    function when_CallMigrator(uint8 config, address migrator, bytes memory data) internal {
         if (Errors(config)) {
-            Execute(address(lc), abi.encodeWithSelector(lc.atomicUpdate.selector, 
-                setF,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            ));
+            Execute(address(lc), abi.encodeWithSelector(lc.storageMigration.selector, migrator, data));
         } else {
-            Record(config);
-            lc.atomicUpdate(
-                setF,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            );
+            lc.storageMigration(migrator, data);
         }
-        bitmap = h.bitmap();
     }
 
-    function when_AddInterface(uint8 config, bytes4 interfaceId) internal {
-        Record(config);
-        lc.atomicUpdate(NO_FACETS(), 
-            B4_(abi.encode(interfaceId)), 
-            NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-        );
-    }
-    
-    function when_RemoveInterface(uint8 config, bytes4 interfaceId) internal {
-        Record(config);
-        lc.atomicUpdate(NO_FACETS(), NO_INTERFACES(),
-            B4_(abi.encode(interfaceId)), 
-            NO_ADDRESS(), NO_DATA()
-        );
-    }
+    // === Private Branch Harnesses ===
 
     function when_CheckNotEoa(uint8 config, address target) internal {
         if (target == address(0)) revert ("CheckNotEoa: address(0) bypasses isolated _isNotEoa branch");
         if (target == address(this)) revert ("CheckNotEoa: address(this) bypasses isolated _isNotEoa branch");
         uint8 index = 42;
         h.setFacetAtWithBitmap(index, target);
+        bitmap256 bitmap = h.bitmap();
         Facet[] memory setF = new Facet[](1);
         setF[0] = Facet({index: index,  facet: target});
         if (Errors(config)) {
-            Execute(address(lc), abi.encodeWithSelector(lc.atomicUpdate.selector, 
-                setF,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            ));
+            Execute(address(lc), abi.encodeWithSelector(lc.setFacet.selector, index, target, bitmap));
         } else {
-            lc.atomicUpdate(
-                setF,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            );
-        }
-    }
-
-    function when_CallMigrator(uint8 config, address migrator, bytes memory data) internal {
-        if (Errors(config)) {
-            Execute(address(lc), abi.encodeWithSelector(lc.atomicUpdate.selector, 
-                NO_FACETS(), NO_INTERFACES(), NO_INTERFACES(), 
-                migrator, data
-            ));
-        } else {
-            lc.atomicUpdate(NO_FACETS(), NO_INTERFACES(), NO_INTERFACES(), 
-                migrator, data
-            );
+            Record(config);
+            lc.setFacet(index, target, bitmap);
         }
     }
 
@@ -114,33 +70,18 @@ abstract contract LibCentoAct is LibCentoTest {
 
     function when_SetFacets(uint8 config, Facet[] memory facets) internal returns (bitmap256 bitmap) {
         if (Errors(config)) {
-            Execute(address(lc), abi.encodeWithSelector(lc.atomicUpdate.selector, 
-                facets,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            ));
+            Execute(address(lc), abi.encodeWithSelector(lc.setFacets.selector, facets));
+            bitmap = h.bitmap();
         } else {
-            Record(config);
-            lc.atomicUpdate(
-                facets,
-                NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-            );
+            bitmap = lc.setFacets(facets);
         }
-        bitmap = h.bitmap();
     }
 
-    function when_AddInterfaces(uint8 config, bytes4[] memory interfaces_) internal {
-        Record(config);
-        lc.atomicUpdate(NO_FACETS(),
-            interfaces_,
-            NO_INTERFACES(), NO_ADDRESS(), NO_DATA()
-        );
-    }
-
-    function when_RemoveInterfaces(uint8 config, bytes4[] memory interfaces_) internal {
-        Record(config);
-        lc.atomicUpdate(NO_FACETS(), NO_INTERFACES(),
-            interfaces_,
-            NO_ADDRESS(), NO_DATA()
-        );
-    }
+    // function when_SetFacets(uint8 config, Facet[] memory facets) internal returns (bitmap256 bitmap) {
+    //     if (Errors(config)) {
+    //         Execute(address(lc), abi.encodeWithSelector(lc.setFacet.selector, facets[i].index, facets[i].facet, bitmap));
+    //     } else {
+    //         bitmap = lc.setFacet(facets[i].index, facets[i].facet, bitmap);
+    //     }
+    // }
 }

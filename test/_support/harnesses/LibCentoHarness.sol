@@ -18,7 +18,7 @@ abstract contract LibCentoHarness {
         return CS().facets[i];
     }
 
-    function bitmap() external view returns (bitmap256) {
+    function bitmap() public view returns (bitmap256) {
         return CS().indexBitmap;
     }
 

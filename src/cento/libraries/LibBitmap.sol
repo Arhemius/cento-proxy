@@ -19,9 +19,7 @@ library LibBitmap {
     error NoFreeSlots();
 
     function _unsafeToUint64(uint256 x) private pure returns (uint64 r) {
-        assembly {
-            r := x
-        }
+        assembly { r := x }
     }
 
     function __onlySingleBit__(uint256 x) private pure {
@@ -44,8 +42,8 @@ library LibBitmap {
         __onlySingleBit__(lsb);
         unchecked {
             uint64 max64 = type(uint64).max;
-            if ((lsb & max64) != 0)          return _ctz64(_unsafeToUint64(lsb));
-            if (((lsb >> 64) & max64) != 0)  return _ctz64(_unsafeToUint64(lsb >> 64)) + 64;
+            if (( lsb         & max64) != 0) return _ctz64(_unsafeToUint64(lsb));
+            if (((lsb >> 64)  & max64) != 0) return _ctz64(_unsafeToUint64(lsb >> 64))  + 64;
             if (((lsb >> 128) & max64) != 0) return _ctz64(_unsafeToUint64(lsb >> 128)) + 128;
                                              return _ctz64(_unsafeToUint64(lsb >> 192)) + 192;
         }
@@ -55,28 +53,21 @@ library LibBitmap {
         uint256 bitmap = u(_bitmap);
         if (bitmap == 0) revert NoFreeSlots();
         uint256 lsb;
-        unchecked {
-            lsb = bitmap & (~bitmap + 1);
-        } 
+        unchecked { lsb = bitmap & (~bitmap + 1); } 
         index = _lsbIndex(lsb);
         nextBitmap = w(bitmap ^ lsb);
     }
 
     function getFirstEmptySlot(bitmap256 _bitmap) internal pure returns (uint8 index) {
-        uint256 bitmap = u(_bitmap);
-        uint256 free;
-        unchecked {
-            free = ~bitmap & (bitmap + 1);
-        }
+        uint256 bitmap = u(_bitmap); uint256 free;
+        unchecked { free = ~bitmap & (bitmap + 1); }
         if (free == 0) revert NoFreeSlots();
         index = _lsbIndex(free);
     }
 
     function countFilledSlots(bitmap256 _bitmap) internal pure returns (uint16 count) {
         uint256 bitmap = u(_bitmap);
-        for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
-            unchecked { count++; } 
-        }
+        for (; bitmap != 0; bitmap &= (bitmap - 1)) { unchecked { count++; } }
     }
 
     function _mask(uint8 index) private pure returns (uint256) {

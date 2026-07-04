@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {Facet} from "cento/structs/Facet.sol";
+import {bitmap256} from "src/cento/libraries/LibBitmap.sol";
 
 interface ILibCento {
 
@@ -9,11 +9,6 @@ interface ILibCento {
     // Events
     // =========================================================================
 
-    event InterfaceAdded(bytes4 interfaceType);
-    event InterfaceRemoved(bytes4 interfaceType);
-    event FacetAdded(uint8 indexed index, address facet);
-    event FacetRemoved(uint8 indexed index, address old);
-    event FacetUpdated(uint8 indexed index, address oldFacet, address newFacet);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event StorageMigrationSucceeded(address indexed migrator);
 
@@ -32,12 +27,9 @@ interface ILibCento {
     // Functions
     // =========================================================================
 
-    function atomicUpdate(
-        Facet[] memory setF, 
-        bytes4[] memory addI, bytes4[] memory remI, 
-        address migrator, bytes memory _calldata
-    ) external;
+    function setFacet(uint8 index, address facet, bitmap256 bitmap) external returns (bitmap256 out);
     function contractOwner() external view returns (address owner_);
     function enforceIsContractOwner() external view;
     function setContractOwner(address newOwner) external;
+    function storageMigration(address migrator, bytes memory _calldata) external;
 }

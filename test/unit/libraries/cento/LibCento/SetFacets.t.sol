@@ -85,25 +85,6 @@ contract SetFacetsTest is LibCentoTestSetup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                                EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    function test_SetFacets_EmitsAllExpectedEvents() public {
-        Facet_[] memory setF = FacetArr_(abi.encode(
-            1, facetA, 2, facetB, 3, facetA
-        ));
-        when_SetFacets(events, Facets({data: setF})._out());
-        then_MatchesEvents(address(lc), FacetsAdded(setF));
-    }
-
-    function test_SetFacets_NoOp_EmitsNothing() public {
-        Facet_[] memory setF = given_EmptyFacetArray();
-        when_SetFacets(events, Facets({data: setF})._out());
-        then_NoEvents();
-    }
-
-
-    /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 

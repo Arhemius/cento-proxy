@@ -43,7 +43,6 @@ library CentoCall {
         (ok, ret) = target.delegatecall(data);
     }
 
-    // you must do abi.encodeCall when calling this function
     function _append(uint8 facet, bytes memory data) internal pure returns (bytes memory) {
         assembly {
             let len := mload(data)

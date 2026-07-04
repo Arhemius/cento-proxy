@@ -7,6 +7,7 @@ struct CounterStorage {
 
 contract CounterV1 {
     
+    // if not linter, could be written as (needs ^0.8.35): bytes32(erc7201("counter.base.slot"));
     bytes32 private constant BASE_SLOT = keccak256(abi.encode(uint256(keccak256(bytes("counter.base.slot")
     )) - 1)) & ~bytes32(uint256(0xff));
 
@@ -17,5 +18,5 @@ contract CounterV1 {
 
     function inc() external {
         _cs().count += 1;
-    }
+    } 
 }

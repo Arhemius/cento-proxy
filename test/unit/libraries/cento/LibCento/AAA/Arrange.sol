@@ -41,19 +41,9 @@ abstract contract LibCentoArrange is LibCentoTest {
         h.setInterface(interfaceId, true);
     }
 
-    function arrange_NoInterface(bytes4 interfaceId) internal {
-        h.setInterface(interfaceId, false);
-    }
-
     function arrange_Interfaces(bytes4[] memory ids) internal {
         for (uint256 i; i < ids.length; ++i) {
             h.setInterface(ids[i], true);
-        }
-    }
-
-    function arrange_NoInterfaces(bytes4[] memory ids) internal {
-        for (uint256 i; i < ids.length; ++i) {
-            h.setInterface(ids[i], false);
         }
     }
 

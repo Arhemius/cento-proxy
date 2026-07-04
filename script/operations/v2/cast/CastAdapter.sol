@@ -18,4 +18,12 @@ contract CastAdapter {
     function supportsInterface(bytes4 interfaceId) external view returns (bool) {
         return CentoProxy.supportsInterface(interfaceId);
     }
+
+    function inc() external {
+        CentoProxy.inc();
+    } 
+
+    function dec() external {
+        CentoProxy.dec();
+    } 
 }

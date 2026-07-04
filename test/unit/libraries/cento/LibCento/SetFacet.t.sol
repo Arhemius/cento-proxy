@@ -78,34 +78,6 @@ contract SetFacetTest is LibCentoTestSetup {
 
 
     /*//////////////////////////////////////////////////////////////
-                                 EVENTS
-    //////////////////////////////////////////////////////////////*/
-
-    function test_SetF_AddFacet_EmitsFacetAdded() public {
-        when_SetFacet(events, 7, facetA);
-        then_MatchesEvent(address(lc), FacetAdded(7, facetA));
-    }
-
-    function test_SetF_UpdateFacet_EmitsFacetUpdated() public {
-        arrange_FacetAt(      7, facetA);
-        when_SetFacet(events, 7, facetB);
-        then_MatchesEvent(address(lc), FacetUpdated(7, facetB, facetA));
-    }
-
-    function test_SetF_RemoveFacet_EmitsFacetRemoved() public {
-        arrange_FacetAt(      7, facetA);
-        when_SetFacet(events, 7, address(0));
-        then_MatchesEvent(address(lc), FacetRemoved(7, facetA));
-    }
-
-    function test_SetF_SameFacet_EmitsNothing() public {
-        arrange_FacetAt(      7, facetA);
-        when_SetFacet(events, 7, facetA);
-        then_NoEvents();
-    }
-
-
-    /*//////////////////////////////////////////////////////////////
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
 

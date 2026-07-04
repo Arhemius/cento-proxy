@@ -1,31 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-import {ILibCento} from "support/interfaces/ILibCento.sol";
 import {LibCentoAdapter} from "support/adapters/LibCentoAdapter.sol";
 import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 import {LibBitmapTM} from "../../LibBitmap/AAA/_LibBitmapTM.sol";
-import {Facet} from "cento/structs/Facet.sol";
 
 abstract contract LibCentoTest is LibBitmapTM {
 
-    bytes4 constant EVT_FACET_ADDED                 = bytes4(ILibCento.FacetAdded.selector);
-    bytes4 constant EVT_FACET_UPDATED               = bytes4(ILibCento.FacetUpdated.selector);
-    bytes4 constant EVT_FACET_REMOVED               = bytes4(ILibCento.FacetRemoved.selector);
-    bytes4 constant EVT_INTERFACE_ADDED             = bytes4(ILibCento.InterfaceAdded.selector);
-    bytes4 constant EVT_INTERFACE_REMOVED           = bytes4(ILibCento.InterfaceRemoved.selector);
-    bytes4 constant EVT_OWNERSHIP_TRANSFERRED       = bytes4(ILibCento.OwnershipTransferred.selector);
-    bytes4 constant EVT_STORAGE_MIGRATION_SUCCEEDED = bytes4(ILibCento.StorageMigrationSucceeded.selector);
-
     LibCentoAdapter internal lc;
     LibCentoHarness internal h;
-
-    // === Empty Value Builders ===
-
-    function NO_FACETS()        internal pure returns (Facet[] memory)   {   return new Facet[](0);  }
-    function NO_INTERFACES()    internal pure returns (bytes4[] memory)  {   return new bytes4[](0); }
-    function NO_ADDRESS()       internal pure returns (address)          {   return     address(0);  }
-    function NO_DATA()          internal pure returns (bytes memory)     {   return     "";          }
 
     // ===== Helper functions =====
 

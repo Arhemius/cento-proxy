@@ -6,9 +6,8 @@ import { IFacetManager } from "./interfaces/IFacetManager.sol";
 import { LibCento as lc } from "./libraries/LibCento.sol";
 import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
-import { Facet } from "./structs/Facet.sol";
-// import { CentoStorage as CS } from "./structs/CentoStorage.sol";
-// import { w } from "./libraries/LibBitmap.sol";
+import { CentoStorage as CS } from "./structs/CentoStorage.sol";
+import { w } from "./libraries/LibBitmap.sol";
 
 contract CentoRouter { 
     /// @dev error FacetNotFound(uint8 index)
@@ -17,42 +16,19 @@ contract CentoRouter {
     uint8   private constant ERC173_INDEX = 1;
     uint8   private constant ERC165_INDEX = 2;
 
-    // === Classic Diamond-like construction (expensive) ===
     constructor (address _contractOwner, address[3] memory facetAddresses) {
-        lc.setContractOwner(_contractOwner);
-
-        Facet[] memory facets = new Facet[](3);
-        facets[0] = Facet({index: 0, facet: facetAddresses[0]});
-        facets[1] = Facet({index: 1, facet: facetAddresses[1]});
-        facets[2] = Facet({index: 2, facet: facetAddresses[2]});
-
-        bytes4[] memory addInterfaces = new bytes4[](4);
-        addInterfaces[0] = type(IERC165).interfaceId;
-        addInterfaces[1] = type(IERC173).interfaceId;
-        addInterfaces[2] = type(IFacetManager).interfaceId;
-        addInterfaces[3] = type(IObservability).interfaceId;
-
-        lc.atomicUpdate(facets, addInterfaces, new bytes4[](0), address(0), "");
+        CS storage cs = lc._cs();
+        cs.contractOwner = _contractOwner; 
+        emit lc.OwnershipTransferred(address(0), _contractOwner);
+        cs.facets[0] = facetAddresses[0];
+        cs.facets[1] = facetAddresses[1];
+        cs.facets[2] = facetAddresses[2];
+        cs.indexBitmap = w(7); // 0b000000...00000111
+        cs.supportedInterfaces[type(IERC165).interfaceId] = true; 
+        cs.supportedInterfaces[type(IERC173).interfaceId] = true; 
+        cs.supportedInterfaces[type(IFacetManager).interfaceId] = true; 
+        cs.supportedInterfaces[type(IObservability).interfaceId] = true;
     }
-
-    // === Optimized construction for cheaper deployment ===
-    // constructor (address _contractOwner, address[3] memory facetAddresses) {
-    //     CS storage cs = lc._cs();
-    //     cs.contractOwner = _contractOwner; 
-    //     emit lc.OwnershipTransferred(address(0), _contractOwner);
-    //     cs.facets[0] = facetAddresses[0]; emit lc.FacetAdded(0, facetAddresses[0]);
-    //     cs.facets[1] = facetAddresses[1]; emit lc.FacetAdded(1, facetAddresses[1]);
-    //     cs.facets[2] = facetAddresses[2]; emit lc.FacetAdded(2, facetAddresses[2]);
-    //     cs.indexBitmap = w(7); // 0b000000...00000111
-    //     cs.supportedInterfaces[type(IERC165).interfaceId] = true; 
-    //     emit lc.InterfaceAdded(type(IERC165).interfaceId);
-    //     cs.supportedInterfaces[type(IERC173).interfaceId] = true; 
-    //     emit lc.InterfaceAdded(type(IERC173).interfaceId);
-    //     cs.supportedInterfaces[type(IFacetManager).interfaceId] = true; 
-    //     emit lc.InterfaceAdded(type(IFacetManager).interfaceId);
-    //     cs.supportedInterfaces[type(IObservability).interfaceId] = true; 
-    //     emit lc.InterfaceAdded(type(IObservability).interfaceId);
-    // }
 
     // TODO: Write the Stage 2 generator script
     // You will have generator script and the config where you(dev) could specify the
@@ -69,7 +45,11 @@ contract CentoRouter {
             case 0xf2fde38b { executeFacet(ERC173_INDEX, cds, 0) }
             executeFacet(byte(0, calldataload(sub(cds, 1))), cds, 1)
 
-            // inline functions are impossible to cover in the eyes of forge coverage
+            /// @dev Executes a delegatecall to the resolved facet address.
+            /// @param idx The index of the facet layout in storage.
+            /// @param totalSize Total calldata length available.
+            /// @param stripLen Bytes to strip from the end of calldata (0 or 1)
+            /// @notice inline functions are impossible to cover in the eyes of forge coverage
             function executeFacet(idx, totalSize, stripLen) {
                 let facet := sload(add(BASE_SLOT, idx))
                 if iszero(facet) { 

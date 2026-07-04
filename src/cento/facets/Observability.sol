@@ -12,23 +12,25 @@ contract Observability is IERC165, IObservability {
 
     function getFacets() external override view returns (address[] memory result) {
         CS storage cs = lc._cs();
-        uint8 index; uint16 i;
+        uint8 index; uint256 i;
         bitmap256 bitmap = cs.indexBitmap;
         result = new address[](256);
         while (u(bitmap) != 0) {
             (bitmap, index) = bitmap.popFirstFilledSlot();
-            result[i++] = cs.facets[index];
+            result[i] = cs.facets[index];
+            unchecked { ++i; }
         } assembly { mstore(result, i) }
     }
 
     function getFacetEntries() external override view returns (Facet[] memory result) {
         CS storage cs = lc._cs();
-        uint8 index; uint16 i;
+        uint8 index; uint256 i;
         bitmap256 bitmap = cs.indexBitmap;
         result = new Facet[](256);
         while (u(bitmap) != 0) {
             (bitmap, index) = bitmap.popFirstFilledSlot();
-            result[i++] = Facet({index: index, facet: cs.facets[index]});
+            result[i] = Facet({index: index, facet: cs.facets[index]});
+            unchecked { ++i; }
         } assembly { mstore(result, i) }
     }
 

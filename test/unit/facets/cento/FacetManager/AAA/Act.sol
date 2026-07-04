@@ -17,6 +17,7 @@ abstract contract FacetManagerAct is FacetManagerTest {
                 setF, addI, remI, migrator_, data
             ));
         } else {
+            Record(config);
             fm.atomicUpdate(setF, addI, remI, migrator_, data);
         }
     }

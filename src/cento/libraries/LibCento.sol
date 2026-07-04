@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import { CentoStorage as CS } from "../structs/CentoStorage.sol";
-import { Facet } from "../structs/Facet.sol";
 import { bitmap256 } from "./LibBitmap.sol";
 import "./LibDebug.sol";
 
@@ -10,11 +9,6 @@ library LibCento {
 
     bytes32 constant BASE_SLOT = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
 
-    event InterfaceAdded(bytes4 interfaceType);
-    event InterfaceRemoved(bytes4 interfaceType);
-    event FacetAdded(uint8 indexed index, address facet);
-    event FacetRemoved(uint8 indexed index, address old);
-    event FacetUpdated(uint8 indexed index, address oldFacet, address newFacet);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event StorageMigrationSucceeded(address indexed migrator);
 
@@ -30,46 +24,19 @@ library LibCento {
         assembly { cs.slot := position }
     }
 
-    function _setFacet(CS storage cs, uint8 index, address facet, bitmap256 bitmap) private returns (bitmap256) {
+    function setFacet(uint8 index, address facet, bitmap256 bitmap) internal returns (bitmap256) {
+        CS storage cs = _cs();
         bool occupied = bitmap.isSlotOccupied(index);
         if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
             _isNotEoa(facet);
             if (occupied) {
-                address old = cs.facets[index];
-                if (old == facet) return bitmap;
-                emit FacetUpdated(index, old, facet);
-            } else {
-                bitmap = bitmap.fillSlotAt(index);
-                emit FacetAdded(index, facet);
-            }
-        } else {
-            bitmap = bitmap.clearSlotAt(index);
-            emit FacetRemoved(index, cs.facets[index]);
-        }
+                if (cs.facets[index] == facet) return bitmap;
+            } else bitmap = bitmap.fillSlotAt(index);
+        } else bitmap = bitmap.clearSlotAt(index);
         cs.facets[index] = facet;
         return bitmap;
-    }
-
-    function _setInterface(CS storage cs, bytes4 interfaceType, bool enabled) private {
-        cs.supportedInterfaces[interfaceType] = enabled;
-        if (enabled) emit InterfaceAdded(interfaceType);
-        else         emit InterfaceRemoved(interfaceType);
-    }
-
-    function atomicUpdate(
-        Facet[]  memory setF, 
-        bytes4[] memory addI,  bytes4[] memory remI,
-        address     migrator,  bytes    memory _calldata
-    ) internal {
-        CS storage cs = _cs();
-        uint16 i; bitmap256 bitmap = cs.indexBitmap;
-        for (     ; i < setF.length; i++) bitmap = _setFacet(cs, setF[i].index, setF[i].facet, bitmap);
-        for (i = 0; i < addI.length; i++)      _setInterface(cs, addI[i], true);
-        for (i = 0; i < remI.length; i++)      _setInterface(cs, remI[i], false);
-        cs.indexBitmap = bitmap;
-        _storageMigration(migrator, _calldata);
     }
 
     function contractOwner() internal view returns (address owner_) {
@@ -105,7 +72,7 @@ library LibCento {
         if (prefix == 0xef0100) revert Is7702EOA(a);
     }
 
-    function _storageMigration(address migrator, bytes memory _calldata) private {
+    function storageMigration(address migrator, bytes memory _calldata) internal {
         if (migrator == address(0)) return;
         _isNotEoa(migrator);
         (bool success, bytes memory returndata) = migrator.delegatecall(_calldata);

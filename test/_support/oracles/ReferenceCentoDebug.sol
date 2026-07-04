@@ -3,7 +3,6 @@ pragma solidity ^0.8.29;
 
 import {ILibCento} from "support/interfaces/ILibCento.sol";
 import { CentoStorage as CS } from "cento/structs/CentoStorage.sol";
-import { Facet } from "cento/structs/Facet.sol";
 import { bitmap256 } from "cento/libraries/LibBitmap.sol";
 
 contract ReferenceCentoDebug is ILibCento {
@@ -15,58 +14,31 @@ contract ReferenceCentoDebug is ILibCento {
         assembly { cs.slot := position }
     }
 
-    function _setFacet(CS storage cs, uint8 index, address facet, bitmap256 bitmap) private returns (bitmap256) {
+    function setFacet(uint8 index, address facet, bitmap256 bitmap) external returns (bitmap256) {
+        CS storage cs = _cs();
         bool occupied = bitmap.isSlotOccupied(index);
         if (!occupied && facet == address(0)) revert ZeroFacetForEmptySlot();
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
             _isNotEoa(facet);
             if (occupied) {
-                address old = cs.facets[index];
-                if (old == facet) return bitmap;
-                emit FacetUpdated(index, old, facet);
-            } else {
-                bitmap = bitmap.fillSlotAt(index);
-                emit FacetAdded(index, facet);
-            }
-        } else {
-            bitmap = bitmap.clearSlotAt(index);
-            emit FacetRemoved(index, cs.facets[index]);
-        }
+                if (cs.facets[index] == facet) return bitmap;
+            } else bitmap = bitmap.fillSlotAt(index);
+        } else bitmap = bitmap.clearSlotAt(index);
         cs.facets[index] = facet;
         return bitmap;
     }
 
-    function _setInterface(CS storage cs, bytes4 interfaceType, bool enabled) private {
-        cs.supportedInterfaces[interfaceType] = enabled;
-        if (enabled) emit InterfaceAdded(interfaceType);
-        else         emit InterfaceRemoved(interfaceType);
-    }
-
-    function atomicUpdate(
-        Facet[] memory setF, 
-        bytes4[] memory addI, bytes4[] memory remI,
-        address migrator, bytes memory _calldata
-    ) external override {
-        CS storage cs = _cs();
-        uint16 i; bitmap256 bitmap = cs.indexBitmap;
-        for (     ; i < setF.length; i++) bitmap = _setFacet(cs, setF[i].index, setF[i].facet, bitmap);
-        for (i = 0; i < addI.length; i++) _setInterface(cs, addI[i], true);
-        for (i = 0; i < remI.length; i++) _setInterface(cs, remI[i], false);
-        cs.indexBitmap = bitmap;
-        _storageMigration(migrator, _calldata);
-    }
-
-    function contractOwner() external view override returns (address owner_) {
+    function contractOwner() external view returns (address owner_) {
         CS storage cs = _cs();
         owner_ = cs.contractOwner;
     }
     
-    function enforceIsContractOwner() external override view {
+    function enforceIsContractOwner() external view {
         if (msg.sender != _cs().contractOwner) revert NotContractOwner(msg.sender);
     }
 
-    function setContractOwner(address _newOwner) external override {
+    function setContractOwner(address _newOwner) external {
         CS storage cs = _cs();
         address previousOwner = cs.contractOwner;
         cs.contractOwner = _newOwner;
@@ -85,7 +57,7 @@ contract ReferenceCentoDebug is ILibCento {
         if (prefix == 0xef0100) revert Is7702EOA(a);
     }
 
-    function _storageMigration(address migrator, bytes memory _calldata) private {
+    function storageMigration(address migrator, bytes memory _calldata) external {
         if (migrator == address(0)) return;
         _isNotEoa(migrator);
         (bool success, bytes memory returndata) = migrator.delegatecall(_calldata);
