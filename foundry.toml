@@ -13,6 +13,8 @@ optimizer = true
 #0-1000
 optimizer_runs = 1000 #0
 via_ir = true
+gas_reports_ignore = ["StorageMigrator"]
+fuzz = { runs = 256 }
 
 [lint]
 exclude_lints = [

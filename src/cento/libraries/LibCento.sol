@@ -31,9 +31,7 @@ library LibCento {
         if (facet == address(this)) revert RouterAsFacetForbidden();
         if (facet != address(0)) {
             _isNotEoa(facet);
-            if (occupied) {
-                if (cs.facets[index] == facet) return bitmap;
-            } else bitmap = bitmap.fillSlotAt(index);
+            if (!occupied) bitmap = bitmap.fillSlotAt(index);
         } else bitmap = bitmap.clearSlotAt(index);
         cs.facets[index] = facet;
         return bitmap;

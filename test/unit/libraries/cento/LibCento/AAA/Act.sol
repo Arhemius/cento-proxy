@@ -77,11 +77,4 @@ abstract contract LibCentoAct is LibCentoTest {
         }
     }
 
-    // function when_SetFacets(uint8 config, Facet[] memory facets) internal returns (bitmap256 bitmap) {
-    //     if (Errors(config)) {
-    //         Execute(address(lc), abi.encodeWithSelector(lc.setFacet.selector, facets[i].index, facets[i].facet, bitmap));
-    //     } else {
-    //         bitmap = lc.setFacet(facets[i].index, facets[i].facet, bitmap);
-    //     }
-    // }
 }

@@ -72,14 +72,8 @@ contract CentoRouter {
 }
 // thanks to routing strategy, facets can also implement receive functions and handle payments there
 
-    // if lt(selector, 0x8da5cb5b) {
-    //     if eq(selector, 0x01ffc9a7) { executeFacet(ERC165_INDEX, cds, 0) }
-    // }
-    // if eq(selector, 0x8da5cb5b) { executeFacet(ERC173_INDEX, cds, 0) }
-    // if eq(selector, 0xf2fde38b) { executeFacet(ERC173_INDEX, cds, 0) }
-    
-
-
+// === BST Example ===
+//
 // if lt(selector, 0x23b872dd) {
 //     if lt(selector, 0x095ea7b3) {
 //         if eq(selector, 0x01ffc9a7) { executeFacet(0, cds, 0) }

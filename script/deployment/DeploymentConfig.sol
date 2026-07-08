@@ -19,6 +19,7 @@ abstract contract DeploymentConfig {
         ))._out();
 
         addInterfaces = new bytes4[](0);
+        // addInterfaces = B4_(abi.encode(<List your interfaces here>));
         migrator = address(0);
         migratorCalldata = "";
     }

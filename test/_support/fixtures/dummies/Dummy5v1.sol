@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-contract Dummy5 {
+contract Dummy5v1 {
     
     function dummy41() external pure returns (bool) { return true; }
     function dummy42() external pure returns (bool) { return true; }

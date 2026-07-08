@@ -19,7 +19,7 @@ contract AtomicUpdateTest is FacetManagerTestSetup {
     }
 
     function test_Atomic_WhenOwner_ExecutesUpdate() public {
-        Facet[] memory addF = FacetArr(abi.encode(1, facetA,  2, facetB,  3, facetA))._out();
+        Facet[] memory addF = FacetArr(abi.encode(1, facetA,  2, facetB,  255, facetA))._out();
         when_AtomicUpdate(__, addF, NO_INTERFACES(), NO_INTERFACES(), NO_ADDRESS(), NO_DATA());
         then_FacetsAt(addF);
     }
