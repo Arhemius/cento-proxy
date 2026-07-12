@@ -15,7 +15,13 @@ import {Dummy3v2} from "./Dummy3v2.sol";
 import {Dummy4v2} from "./Dummy4v2.sol";
 import {Dummy5v2} from "./Dummy5v2.sol";
 
-contract DummyCuts {
+contract Dummies {
+
+    uint8 internal constant DUMMY_1 = 3;
+    uint8 internal constant DUMMY_2 = 4;
+    uint8 internal constant DUMMY_3 = 5;
+    uint8 internal constant DUMMY_4 = 6;
+    uint8 internal constant DUMMY_5 = 7;
 
     address internal dummy1v1;
     address internal dummy2v1;
@@ -38,6 +44,9 @@ contract DummyCuts {
     IDiamondCut.FacetCut[] internal Upd5Cuts;
     IDiamondCut.FacetCut[] internal Rem5Cuts;
 
+    IDiamondCut.FacetCut[] internal Rem4Cuts;
+    IDiamondCut.FacetCut[] internal Rem3Cuts;
+
     bytes4[] internal dummy1Sigs;
     bytes4[] internal dummy2Sigs;
     bytes4[] internal dummy3Sigs;
@@ -50,6 +59,7 @@ contract DummyCuts {
         create1Cuts();
         create2Cuts();
         create5Cuts();
+        createRemCuts();
     }
 
     function createDummies() private {
@@ -79,7 +89,7 @@ contract DummyCuts {
         }));
 
         Rem1Cut.push(IDiamondCut.FacetCut({
-            facetAddress: dummy1v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy1Sigs
         }));
@@ -109,12 +119,12 @@ contract DummyCuts {
         }));
 
         Rem2Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy1v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy1Sigs
         }));
         Rem2Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy2v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy2Sigs
         }));
@@ -174,28 +184,68 @@ contract DummyCuts {
             functionSelectors: dummy5Sigs
         }));
 
+
         Rem5Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy1v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy1Sigs
         }));
         Rem5Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy2v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy2Sigs
         }));
         Rem5Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy3v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy3Sigs
         }));
         Rem5Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy4v2,
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy4Sigs
         }));
         Rem5Cuts.push(IDiamondCut.FacetCut({
-            facetAddress: dummy5v2,
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy5Sigs
+        }));
+    }
+
+    function createRemCuts() private {
+        Rem4Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy2Sigs
+        }));
+        Rem4Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy3Sigs
+        }));
+        Rem4Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy4Sigs
+        }));
+        Rem4Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy5Sigs
+        }));
+
+        Rem3Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy3Sigs
+        }));
+        Rem3Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
+            action: IDiamondCut.FacetCutAction.Remove,
+            functionSelectors: dummy4Sigs
+        }));
+        Rem3Cuts.push(IDiamondCut.FacetCut({
+            facetAddress: address(0),
             action: IDiamondCut.FacetCutAction.Remove,
             functionSelectors: dummy5Sigs
         }));

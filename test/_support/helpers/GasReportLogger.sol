@@ -66,11 +66,42 @@ abstract contract GasReportLogger is Test {
             PREFIX,
             unicode"│ ",  _padRight(_functionName, FN_WIDTH),
             unicode" │ ", _padRight(mode, CASE_WIDTH),
-            unicode" │ ", _padLeft(string.concat(_formatGas(vm.snapshotGasLastCall(_label, mode)), " gas"), GAS_WIDTH),
+            unicode" │ ", _padLeft(string.concat(_formatNumber(vm.snapshotGasLastCall(_label, mode)), " gas"), GAS_WIDTH),
             unicode" │"
         ));
         _functionName = "";
     }
+
+
+    function th(string memory functionName, uint256 gas) internal {
+        th(functionName, "", gas);
+    }
+
+    function th(string memory functionName, string memory mode, uint256 gas) internal {
+        label(functionName);
+        tr_(mode, gas);
+    }
+
+    function tr(string memory functionName, uint256 gas) internal {
+        tr(functionName, "", gas);
+    }
+
+    function tr(string memory functionName, string memory mode, uint256 gas) internal {
+        _label = functionName;
+        tr_(mode, gas);
+    }
+
+    function tr_(string memory mode, uint256 gas) internal {
+        console.log(string.concat(
+            PREFIX,
+            unicode"│ ",  _padRight(_functionName, FN_WIDTH),
+            unicode" │ ", _padRight(mode, CASE_WIDTH),
+            unicode" │ ", _padLeft(string.concat(_formatNumber(gas), " gas"), GAS_WIDTH),
+            unicode" │"
+        ));
+        _functionName = "";
+    }
+
 
     function hr() internal view {
         console.log(string.concat(PREFIX, _middle()));
@@ -79,6 +110,12 @@ abstract contract GasReportLogger is Test {
     function table() internal view {
         console.log(string.concat(PREFIX, _bottom()));
         console.log(PREFIX);
+    }
+
+    function formatLength(address target) internal view returns (string memory) {
+        string memory formatted = _formatNumber(address(target).code.length);
+        string memory padding = _repeat(" ", 6 - bytes(formatted).length);
+        return string.concat(padding, formatted, " Bytes");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -143,7 +180,7 @@ abstract contract GasReportLogger is Test {
         return string(out);
     }
 
-    function _formatGas(uint256 value) private pure returns (string memory) {
+    function _formatNumber(uint256 value) private pure returns (string memory) {
         bytes memory input = bytes(vm.toString(value));
         uint256 len = input.length;
         if (len <= 3) return string(input);

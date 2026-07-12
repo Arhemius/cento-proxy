@@ -9,8 +9,8 @@ import {ObservabilityAct} from "./Act.sol";
 abstract contract ObservabilityTestSetup is Facets, Interfaces, ObservabilityAct {
 
     function lc_create() internal virtual override {
-        o = new ObservabilityAdapter();
-        target(address(o));
+        oa = new ObservabilityAdapter();
+        target(address(oa));
     }
 
 }

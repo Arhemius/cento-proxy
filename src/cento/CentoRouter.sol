@@ -16,7 +16,7 @@ contract CentoRouter {
     uint8   private constant ERC173_INDEX = 1;
     uint8   private constant ERC165_INDEX = 2;
 
-    constructor (address _contractOwner, address[3] memory facetAddresses) {
+    constructor (address _contractOwner, address[3] memory facetAddresses) payable {
         CS storage cs = lc._cs();
         cs.contractOwner = _contractOwner; 
         emit lc.OwnershipTransferred(address(0), _contractOwner);
@@ -37,8 +37,22 @@ contract CentoRouter {
         assembly {
             let cds := calldatasize()
             if and(cds, 1) {
-                executeFacet(byte(0, calldataload(sub(cds, 1))), cds, 1)
-            } // If you have more than 6 selectors, use optimized BST
+                // inlining logic for the hot path saves 23 gas per call at the cost of 67 bytes of additional bytecode
+                let idx := byte(0, calldataload(sub(cds, 1)))
+                let facet := sload(add(BASE_SLOT, idx))
+                if iszero(facet) { 
+                    mstore(0x00, ERR_FACET_NOT_FOUND)
+                    mstore(0x04, idx)
+                    revert(0x00, 0x24)
+                }
+                calldatacopy(0, 0, cds)
+                let ok := delegatecall(gas(), facet, 0, sub(cds, 1), 0, 0)
+                returndatacopy(0, 0, returndatasize())
+                switch ok
+                case 0  { revert(0, returndatasize()) }
+                default { return(0, returndatasize()) }
+            } 
+            // If you have more than 6 selectors, use optimized BST
             switch shr(224, calldataload(0))
             case 0x01ffc9a7 { executeFacet(ERC165_INDEX, cds, 0) }
             case 0x8da5cb5b { executeFacet(ERC173_INDEX, cds, 0) }

@@ -49,9 +49,14 @@ abstract contract CentoRouterAct is CentoRouterTest {
         CentoCall._call(address(cr), value, "");
     }
 
-    function when_CallNonExistentFacet(uint8 index) internal {
+    function when_CallNonExistentFacet_Odd(uint8 index) internal {
         // provided slot is expected to be empty for this test
         Execute(address(cr), CentoCall._append(index, ""));
+    }
+
+    function when_CallNonExistentFacet_Even(uint8 index) internal {
+        // provided slot is expected to be empty for this test
+        Execute(address(cr), CentoCall._append(index, "e"));
     }
 
     function when_CallGetOwner() internal view returns (address owner) {

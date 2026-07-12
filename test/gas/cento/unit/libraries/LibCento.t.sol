@@ -19,6 +19,7 @@ contract LibCentoGasTest is LibCentoTM, CentoArrange, _Facets, SimpleActors, Mig
         rc = new LibCentoDebugAdapter();
         rc_ = address(rc);
         setWidths(22, 10, 10);
+        store_FacetAt(rc_, 42, facetB);
     }
 
     function test_00_00_header() public view {
@@ -27,12 +28,11 @@ contract LibCentoGasTest is LibCentoTM, CentoArrange, _Facets, SimpleActors, Mig
 
     // ========== setFacet ==========
     function test_01_00_setFacet_Add() public {
-        rc.setFacet(42, facetA, given_SingleBit(42));
+        rc.setFacet(41, facetA, given_SingleBit(41));
         th("setFacet", "add");
     }
 
     function test_01_01_setFacet_Update() public {
-        store_FacetAt(rc_, 42, facetB);
         rc.setFacet(42, facetA, given_SingleBit(42));
         tr("setFacet", "update");
     }
@@ -52,7 +52,7 @@ contract LibCentoGasTest is LibCentoTM, CentoArrange, _Facets, SimpleActors, Mig
     }
 
     function test_03_00_enforceIsContractOwner() public {
-        rc.setContractOwner(owner);
+        store_Owner(rc_, owner);
         vm.prank(owner);
         rc.enforceIsContractOwner();
         th("enforceIsContractOwner");
@@ -83,8 +83,8 @@ contract LibCentoGasTest is LibCentoTM, CentoArrange, _Facets, SimpleActors, Mig
 //   [Gas]    ╭─ LibCento ─────────────╮
 //   [Gas]    │                        ├────────────┬────────────╮
 //   [Gas]    │ setFacet               │ add        │ 25,393 gas │
-//   [Gas]    │                        │ update     │  3,493 gas │
-//   [Gas]    │                        │ remove     │    716 gas │
+//   [Gas]    │                        │ update     │  8,293 gas │
+//   [Gas]    │                        │ remove     │  3,516 gas │
 //   [Gas]    ├────────────────────────┼────────────┼────────────┤
 //   [Gas]    │ contractOwner          │            │    310 gas │
 //   [Gas]    │ enforceIsContractOwner │            │    326 gas │

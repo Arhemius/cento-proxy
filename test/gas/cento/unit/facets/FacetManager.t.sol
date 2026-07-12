@@ -19,7 +19,7 @@ contract FacetManagerGasTest is FacetManagerTestSetup, CentoArrange, GasReportLo
 
     function lc_setup() internal override {
         store_Owner(fm_, owner);
-        setWidths(16, 10, 10);
+        setWidths(16, 10, 11);
         vm.startPrank(owner);
     }
 

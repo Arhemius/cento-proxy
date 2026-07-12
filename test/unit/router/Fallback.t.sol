@@ -33,8 +33,16 @@ contract FallbackTest is CentoRouterTestSetup {
         assertEq(address(cr).balance, 1 ether);
     }
 
-    function test_NonExistentFacet_Reverts() public {
-        when_CallNonExistentFacet(255);
+    function test_NonExistentFacet_Odd_Reverts() public {
+        when_CallNonExistentFacet_Odd(255);
+        then_MatchesError(Error({
+            selector: ERR_FACET_NOT_FOUND,
+            data: abi.encode(255)
+        }));
+    }
+
+    function test_NonExistentFacet_Even_Reverts() public {
+        when_CallNonExistentFacet_Even(255);
         then_MatchesError(Error({
             selector: ERR_FACET_NOT_FOUND,
             data: abi.encode(255)

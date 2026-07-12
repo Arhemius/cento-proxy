@@ -7,6 +7,6 @@ import {ObservabilityAdapter} from "support/adapters/ObservabilityAdapter.sol";
 
 abstract contract ObservabilityTest is Test, LibCentoTM {
 
-    ObservabilityAdapter internal o;
+    ObservabilityAdapter internal oa;
 
 }

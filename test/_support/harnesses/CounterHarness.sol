@@ -5,7 +5,7 @@ import {CounterStorage} from "support/oracles/ReferenceCounterStorage.sol";
 
 abstract contract CounterHarness {
 
-    bytes32 private constant BASE_SLOT = keccak256(abi.encode(uint256(keccak256(bytes("counter.base.slot")
+    bytes32 constant BASE_SLOT = keccak256(abi.encode(uint256(keccak256(bytes("counter.base.slot")
     )) - 1)) & ~bytes32(uint256(0xff));
 
     function CS() internal pure returns (CounterStorage storage cs) {

@@ -24,7 +24,7 @@ abstract contract CounterV2TestSetup is CentoTM, SimpleActors {
         CounterV2 counterV2 = new CounterV2();
         counterV2Facet = address(counterV2);
         install(FacetArr(abi.encode(
-           CentoV2.COUNTER_V2, address(counterV2)
+           CentoV2.COUNTER_V2, counterV2Facet
         ))._out(), NO_INTERFACES());
     }
 }
