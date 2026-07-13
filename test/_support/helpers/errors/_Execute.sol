@@ -13,7 +13,6 @@ abstract contract $Execute is Test, ErrorContext {
     uint8 internal constant __   = 0;
     uint8 internal constant events = 1 << 0;
     uint8 internal constant errors = 1 << 1;
-    // uint8 internal constant gas = 1 << 2;
 
     // ---------------------------------------------------------------------
     // Configuration helpers

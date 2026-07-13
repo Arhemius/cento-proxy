@@ -18,18 +18,6 @@ contract LibCentoDebugAdapter is ILibCento {
         out = lc.setFacet(index, facet, bitmap);
     }
 
-    // gas functions - bad approach - selectors are different - different gas cost
-    // function addFacet(uint8 index, address facet, bitmap256 bitmap) external returns (bitmap256 out) {
-    //     out = lc.setFacet(index, facet, bitmap);
-    // }
-
-    // function updFacet(uint8 index, address facet, bitmap256 bitmap) external returns (bitmap256 out) {
-    //     out = lc.setFacet(index, facet, bitmap);
-    // }
-
-    // function removeFacet(uint8 index, address facet, bitmap256 bitmap) external returns (bitmap256 out) {
-    //     out = lc.setFacet(index, facet, bitmap);
-    // }
     // ===========
 
     function contractOwner() external view override returns (address owner_) {

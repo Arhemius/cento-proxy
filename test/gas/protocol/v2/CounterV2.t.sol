@@ -3,18 +3,28 @@ pragma solidity ^0.8.29;
 
 import {GasReportLogger} from "support/helpers/GasReportLogger.sol";
 import {CounterV2} from "src/protocol/v2/CounterV2.sol";
-import {CounterHarness} from "support/harnesses/CounterHarness.sol";
+import {$CounterV2} from "support/harnesses/CounterV2Harness.sol";
 
-contract CounterV2GasTest is GasReportLogger, CounterHarness {
+contract CounterV2GasTest is GasReportLogger {
 
     CounterV2 internal CTR;
+    $CounterV2 internal _ctr;
     address internal ctr;
+
+    CounterV2 internal REMCTR;
+    $CounterV2 internal _remctr;
+    address internal remctr;
 
     function setUp() public {
         CTR = new CounterV2();
-        ctr = address(CTR);
+        _ctr = $CounterV2.wrap(address(CTR));
+        _ctr.setCount(42);
+
+        REMCTR = new CounterV2();
+        _remctr = $CounterV2.wrap(address(REMCTR));
+        _remctr.setCount(1);
+
         setWidths(12, 10, 10);
-        vm.store(ctr, BASE_SLOT, bytes32(uint256(42)));
     }
 
     function test_00_00_header() public view {
@@ -39,8 +49,7 @@ contract CounterV2GasTest is GasReportLogger, CounterHarness {
     }
 
     function test_02_01_dec_last() public {
-        vm.store(ctr, BASE_SLOT, bytes32(uint256(1)));
-        CTR.dec();  
+        REMCTR.dec();  
         tr("dec", "1 -> 0");
     }
 
@@ -49,6 +58,19 @@ contract CounterV2GasTest is GasReportLogger, CounterHarness {
     }
 }
 
+// ======= Test in Isolation mode for deletion to give proper cost =======
+// === As you can see, alternative approach to layout makes storage operations cheaper (roughly by 266 gas) ===
+
+//   [Gas]    ╭─ CounterV2 ──╮
+//   [Gas]    │              ├────────────┬────────────╮
+//   [Gas]    │ inc          │ 0 -> 1     │ 43,322 gas │
+//   [Gas]    │              │ n -> n+1   │ 26,222 gas │
+//   [Gas]    ├──────────────┼────────────┼────────────┤
+//   [Gas]    │ dec          │ n -> n-1   │ 26,243 gas │
+//   [Gas]    │              │ 1 -> 0     │ 21,443 gas │
+//   [Gas]    ╰──────────────┴────────────┴────────────╯
+
+// Previous metrics (no-isolation):
 //   [Gas]    ╭─ CounterV2 ──╮
 //   [Gas]    │              ├────────────┬────────────╮
 //   [Gas]    │ inc          │ 1st        │ 22,524 gas │
@@ -57,3 +79,15 @@ contract CounterV2GasTest is GasReportLogger, CounterHarness {
 //   [Gas]    │ dec          │ 1st+       │  5,445 gas │
 //   [Gas]    │              │ last       │    645 gas │
 //   [Gas]    ╰──────────────┴────────────┴────────────╯
+
+// New metrics (no-isolation measures deletion improperly)
+//   [Gas]    ╭─ CounterV2 ──╮
+//   [Gas]    │              ├────────────┬────────────╮
+//   [Gas]    │ inc          │ 0 -> 1     │ 22,258 gas │
+//   [Gas]    │              │ n -> n+1   │  5,158 gas │
+//   [Gas]    ├──────────────┼────────────┼────────────┤
+//   [Gas]    │ dec          │ n -> n-1   │  5,179 gas │
+//   [Gas]    │              │ 1 -> 0     │  5,179 gas │
+//   [Gas]    ╰──────────────┴────────────┴────────────╯
+
+// New layout gas improvement: 22,524 - 22,258 = 266 gas

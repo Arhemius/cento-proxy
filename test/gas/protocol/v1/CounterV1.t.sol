@@ -3,18 +3,16 @@ pragma solidity ^0.8.29;
 
 import {GasReportLogger} from "support/helpers/GasReportLogger.sol";
 import {CounterV1} from "src/protocol/v1/CounterV1.sol";
-import {CounterHarness} from "support/harnesses/CounterHarness.sol";
+import {CounterV1Harness} from "support/harnesses/CounterV1Harness.sol";
 
-contract CounterV1GasTest is GasReportLogger, CounterHarness {
+contract CounterV1GasTest is GasReportLogger, CounterV1Harness {
 
     CounterV1 internal CTR;
-    address internal ctr;
 
     function setUp() public {
         CTR = new CounterV1();
-        ctr = address(CTR);
         setWidths(12, 10, 10);
-        vm.store(ctr, BASE_SLOT, bytes32(uint256(1)));
+        vm.store(address(CTR), BASE_SLOT, bytes32(uint256(1)));
     }
 
     function test_00_00_header() public view {
@@ -40,5 +38,5 @@ contract CounterV1GasTest is GasReportLogger, CounterHarness {
 //   [Gas]    ╭─ CounterV1 ──╮
 //   [Gas]    │              ├────────────┬────────────╮
 //   [Gas]    │ inc          │ 1st        │ 22,491 gas │
-//   [Gas]    │              │ 2nd+       │  5,591 gas │
+//   [Gas]    │              │ 2nd+       │  5,391 gas │
 //   [Gas]    ╰──────────────┴────────────┴────────────╯

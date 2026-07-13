@@ -2,7 +2,6 @@
 pragma solidity ^0.8.29;
 
 import "support/builtins/Builtins.sol";
-// import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "cento/structs/Facet.sol";
 import {IFacetManager} from "src/cento/interfaces/IFacetManager.sol";
 import {EventAssertions} from "support/helpers/events/EventAssertions.sol";
