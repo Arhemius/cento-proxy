@@ -2,13 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTest} from "./Base.t.sol";
-import {bitmap256, u} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {ErrorBuilders} from "./ErrorBuilders.sol";
 
-/**
- * @title LibBitmap Assert Layer
- * @notice THEN clauses - interface compliance verification
- */
 abstract contract LibBitmapAssert is LibBitmapTest, ErrorBuilders {
 
     // === Output Verification ===
@@ -18,7 +14,7 @@ abstract contract LibBitmapAssert is LibBitmapTest, ErrorBuilders {
     }
 
     function then_BitmapIs(bitmap256 actual, bitmap256 expected) internal pure {
-        assertEq(u(actual), u(expected), "Bitmap mismatch");
+        assertEq(bitmap256.unwrap(actual), bitmap256.unwrap(expected), "Bitmap mismatch");
     }
 
     function then_PopSequenceIs(uint8[] memory actual, uint8[] memory expected) internal pure {
@@ -51,10 +47,10 @@ abstract contract LibBitmapAssert is LibBitmapTest, ErrorBuilders {
     }
 
     function then_BitmapEmpty(bitmap256 bitmap) internal view {
-        assertEq(u(bitmap), u(EMPTY_BITMAP), "Bitmap should be empty");
+        assertEq(bitmap256.unwrap(bitmap), bitmap256.unwrap(EMPTY_BITMAP), "Bitmap should be empty");
     }
 
     function then_BitmapFull(bitmap256 bitmap) internal view {
-        assertEq(u(bitmap), u(FULL_BITMAP), "Bitmap should be full");
+        assertEq(bitmap256.unwrap(bitmap), bitmap256.unwrap(FULL_BITMAP), "Bitmap should be full");
     }
 }

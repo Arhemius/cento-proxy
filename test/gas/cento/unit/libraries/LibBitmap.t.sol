@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import "support/builtins/Builtins.sol";
-import {bitmap256} from "src/cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {LibBitmapTM} from "test/unit/libraries/cento/LibBitmap/AAA/_LibBitmapTM.sol";
 import {LibBitmapAdapter} from "support/adapters/LibBitmapAdapter.sol";
 import {GasReportLogger} from "support/helpers/GasReportLogger.sol";

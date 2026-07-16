@@ -3,17 +3,13 @@ pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
 import {IBitmap} from "support/interfaces/IBitmap.sol";
-import {bitmap256, w} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {$Execute} from "support/helpers/errors/_Execute.sol";
 
-/**
- * @title LibBitmap Base Test
- * @notice Foundation for all LibBitmap tests
- */
 abstract contract LibBitmapTest is Test, $Execute {
 
-    bitmap256 immutable EMPTY_BITMAP = w(0);
-    bitmap256 immutable FULL_BITMAP = w(type(uint256).max);
+    bitmap256 immutable EMPTY_BITMAP = bitmap256.wrap(0);
+    bitmap256 immutable FULL_BITMAP = bitmap256.wrap(type(uint256).max);
 
     bytes4 constant POPFIRST_FILLED_SLOT = IBitmap.popFirstFilledSlot.selector;
     bytes4 constant GET_FIRST_EMPTY_SLOT = IBitmap.getFirstEmptySlot.selector;

@@ -2,12 +2,8 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTest} from "./Base.t.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
-/**
- * @title LibBitmap Act Layer
- * @notice WHEN clauses - function execution via interfaces
- */
 abstract contract LibBitmapAct is LibBitmapTest {
     // === Core Functionality ===
 

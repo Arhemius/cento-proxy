@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {IBitmap} from "support/interfaces/IBitmap.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
 /**
  * @title LibBitmapAdapter

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTest} from "./Base.t.sol";
-import {bitmap256, u} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
 abstract contract LibBitmapCompliance is LibBitmapTest {
 
@@ -21,7 +21,7 @@ abstract contract LibBitmapCompliance is LibBitmapTest {
         (bitmap256 implNext, uint8 implIdx) = implementation.popFirstFilledSlot(bitmap);
         (bitmap256 refNext, uint8 refIdx) = oracle.popFirstFilledSlot(bitmap);
         assertEq(implIdx, refIdx, "Interface compliance: index mismatch");
-        assertEq(u(implNext), u(refNext), "Interface compliance: bitmap mismatch");
+        assertEq(bitmap256.unwrap(implNext), bitmap256.unwrap(refNext), "Interface compliance: bitmap mismatch");
     }
 
     function then_CompliesWith_GetFirstEmptySlot(bitmap256 bitmap) internal view {
@@ -45,13 +45,13 @@ abstract contract LibBitmapCompliance is LibBitmapTest {
     function then_CompliesWith_FillSlotAt(bitmap256 bitmap, uint8 index) internal view {
         bitmap256 implNext = implementation.fillSlotAt(bitmap, index);
         bitmap256 refNext = oracle.fillSlotAt(bitmap, index);
-        assertEq(u(implNext), u(refNext), "Interface compliance: bitmap mismatch");
+        assertEq(bitmap256.unwrap(implNext), bitmap256.unwrap(refNext), "Interface compliance: bitmap mismatch");
     }
 
     function then_CompliesWith_ClearSlotAt(bitmap256 bitmap, uint8 index) internal view {
         bitmap256 implNext = implementation.clearSlotAt(bitmap, index);
         bitmap256 refNext = oracle.clearSlotAt(bitmap, index);
-        assertEq(u(implNext), u(refNext), "Interface compliance: bitmap mismatch");
+        assertEq(bitmap256.unwrap(implNext), bitmap256.unwrap(refNext), "Interface compliance: bitmap mismatch");
     }
 
 }

@@ -5,11 +5,6 @@ import "support/builtins/Builtins.sol";
 import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "cento/structs/Facet.sol";
 
-/**
- * @title LibCento Arrange Layer
- * @notice GIVEN = pure value generation
- *         ARRANGE = storage/state generation
- */
 abstract contract LibCentoArrange is LibCentoTest {
 
     // =============================================================

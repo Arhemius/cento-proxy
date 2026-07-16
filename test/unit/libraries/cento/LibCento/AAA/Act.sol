@@ -3,13 +3,9 @@ pragma solidity ^0.8.29;
 
 import {LibCentoTest} from "./Base.t.sol";
 import {Facet} from "cento/structs/Facet.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title LibCento Act Layer
- * @notice WHEN clauses - function execution via interfaces
- */
 abstract contract LibCentoAct is LibCentoTest {
 
     // === Public/Internal Functions ===

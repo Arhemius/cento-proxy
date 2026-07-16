@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import "support/builtins/Builtins.sol";
 import {Facet} from "cento/structs/Facet.sol";
-import {bitmap256, w} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {FacetManagerTestSetup} from "./AAA/Setup.sol";
 
 contract AtomicUpdateTest is FacetManagerTestSetup {
@@ -97,6 +97,6 @@ contract AtomicUpdateTest is FacetManagerTestSetup {
     }
 
     function newBitmap() private view returns (bitmap256 bitmap) {
-        bitmap = w(uint256(h.TestSlot(Migrator.TEST_SLOT())));
+        bitmap = bitmap256.wrap(uint256(h.TestSlot(Migrator.TEST_SLOT())));
     }
 }

@@ -2,18 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256, u} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title GetFirstEmptySlot Tests
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256)
- * - Output: index (uint8)
- * - Behavior: Returns index of lowest empty slot
- * - Reverts: NoFreeSlots if bitmap is full
- */
 contract GetFirstEmptySlotTest is LibBitmapTestSetup {
 
     // === Input: Empty Bitmap ===
@@ -55,7 +46,7 @@ contract GetFirstEmptySlotTest is LibBitmapTestSetup {
     // === Interface Compliance (Fuzz Tests) ===
 
     function testFuzz_Get_Complies(bitmap256 bitmap) public view {
-        vm.assume(u(bitmap) != u(FULL_BITMAP)); // Skip full bitmap (would revert)
+        vm.assume(bitmap256.unwrap(bitmap) != bitmap256.unwrap(FULL_BITMAP)); // Skip full bitmap (would revert)
         then_CompliesWith_GetFirstEmptySlot(bitmap);
     }
 }

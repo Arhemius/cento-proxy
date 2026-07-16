@@ -44,14 +44,14 @@ abstract contract ErrorAssertions is Test, ErrorContext, ErrorBuildersBasic {
     function mismatch(string memory reason, string memory expected, string memory received) private pure {
         revert(string.concat(
             reason,
-            "\n\n  Expected:\n  ", expected,
-            "\n\n  Received:\n  ", received
+            "\n\nExpected:\n  ", expected,
+            "\n\nReceived:\n  ", received
         ));
     }
 
     function decodeActual() internal view returns (string memory) {
-        if (Err.selector == 0x08c379a0) return string.concat("Error\n  ", vm.toString(Err.data));
-        if (Err.selector == 0x4e487b71) return string.concat("Panic\n  ", vm.toString(Err.data));
+        if (Err.selector == 0x08c379a0) return string.concat("Error\n", vm.toString(Err.data));
+        if (Err.selector == 0x4e487b71) return string.concat("Panic\n", vm.toString(Err.data));
         if (Err.selector == bytes4(0))  return "Raw/Unknown";
         return vm.toString(abi.encodePacked(Err.selector));
     }

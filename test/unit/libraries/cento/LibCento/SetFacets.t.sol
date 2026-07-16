@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import "support/builtins/Builtins.sol";
 import {Facet} from "cento/structs/Facet.sol";
 import { LibCentoTestSetup } from "./AAA/Setup.sol";
-import { bitmap256 } from "cento/libraries/LibBitmap.sol";
+import { bitmap256 } from "cento/types/bitmap256.sol";
 
 contract SetFacetsTest is LibCentoTestSetup {
 

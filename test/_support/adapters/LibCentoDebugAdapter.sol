@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {LibCento as lc} from "cento/libraries/LibCento.sol";
 import {ILibCento} from "support/interfaces/ILibCento.sol";
 import {CentoStorage} from "cento/structs/CentoStorage.sol";
-import {bitmap256} from "src/cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
 // === pure contract implementation without storage harness tooling inheritance ===
 

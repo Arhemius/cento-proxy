@@ -124,7 +124,7 @@ abstract contract GasReportLogger is Test {
 
     function _top(string memory title) private view returns (string memory) {
         return string.concat(
-            unicode"╭─ ", title, " ", _repeat(unicode"─", FN_WIDTH - bytes(title).length - 1), unicode"╮\n  ", 
+            unicode"╭─ ", title, " ", _repeat(unicode"─", FN_WIDTH - bytes(title).length - 1), unicode"╮\n", 
             // here we'll add contract size and deployment cost?
             PREFIX,
             unicode"│ ", _repeat(" ", FN_WIDTH),

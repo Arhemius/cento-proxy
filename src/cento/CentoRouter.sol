@@ -7,15 +7,36 @@ import { LibCento as lc } from "./libraries/LibCento.sol";
 import { IERC173 } from "./interfaces/IERC173.sol";
 import { IERC165 } from "./interfaces/IERC165.sol";
 import { CentoStorage as CS } from "./structs/CentoStorage.sol";
-import { w } from "./libraries/LibBitmap.sol";
+import { bitmap256 } from "./types/bitmap256.sol";
 
+
+/// @title Cento Router
+/// @author Artem Buchikhin *(@Arhemius)* 
+/// @notice Entry point for the Cento Proxy protocol.
+/// @dev Routes calls to installed facets using one of two dispatch strategies:
+/// - Appended-index routing for protocol functions.
+/// - Selector-based routing for compatibility standards and small protocols.
+/// @dev The router itself is immutable after deployment. Protocol functionality is
+/// provided entirely by delegatecalls into installed facets.
 contract CentoRouter { 
-    /// @dev error FacetNotFound(uint8 index)
+
+    /// @dev Selector of error `FacetNotFound(uint8)`.
     bytes4  private constant ERR_FACET_NOT_FOUND = 0xca05c783;
+    /// @dev ERC-7201 namespace backing the shared `CentoStorage` layout.
     bytes32 private constant BASE_SLOT    = 0x69f90de95fb99742e875407e8b95a22f11141a7a0ca101bc562658f163a85b00;
+    /// @dev Routing index of the facet that supports ERC-173.
     uint8   private constant ERC173_INDEX = 1;
+    /// @dev Routing index of the facet that supports ERC-165.
     uint8   private constant ERC165_INDEX = 2;
 
+    /// @notice Deploys a new `CentoRouter`.
+    /// @param _contractOwner Initial protocol owner.
+    /// @param facetAddresses Addresses of the core protocol facets.
+    /// @dev Expects the following facet order:
+    /// - index 0: FacetManager
+    /// - index 1: Ownership *(with ERC-173)*
+    /// - index 2: Observability *(with ERC-165)*
+    /// @dev Additional facets are installed later through the  `FacetManager`.
     constructor (address _contractOwner, address[3] memory facetAddresses) payable {
         CS storage cs = lc._cs();
         cs.contractOwner = _contractOwner; 
@@ -23,7 +44,7 @@ contract CentoRouter {
         cs.facets[0] = facetAddresses[0];
         cs.facets[1] = facetAddresses[1];
         cs.facets[2] = facetAddresses[2];
-        cs.indexBitmap = w(7); // 0b000000...00000111
+        cs.indexBitmap = bitmap256.wrap(7); // 0b000000...00000111
         cs.supportedInterfaces[type(IERC165).interfaceId] = true; 
         cs.supportedInterfaces[type(IERC173).interfaceId] = true; 
         cs.supportedInterfaces[type(IFacetManager).interfaceId] = true; 
@@ -33,6 +54,17 @@ contract CentoRouter {
     // TODO: Write the Stage 2 generator script
     // You will have generator script and the config where you(dev) could specify the
     // interfaces they tend to support, and add custom ones
+
+    /// @notice Dispatches incoming function calls to the appropriate facet.
+    /// @dev Uses two routing modes:
+    /// - **Protocol routing**\
+    ///   Functions whose calldata ends with a facet index are\
+    ///   dispatched directly using the appended index.
+    /// - **Compatibility routing**\
+    ///   Selectors of compatibility standards are dispatched through\
+    ///   the stage-2 routing, preserving standard external APIs.
+    /// @dev All calls execute via `delegatecall`, preserving the `CentoRouter` storage
+    /// context and propagating returndata or reverts unchanged.
     fallback() external payable {
         assembly {
             let cds := calldatasize()
@@ -59,6 +91,7 @@ contract CentoRouter {
             case 0xf2fde38b { executeFacet(ERC173_INDEX, cds, 0) }
             executeFacet(byte(0, calldataload(sub(cds, 1))), cds, 1)
 
+            //  These commenst are not a part of forge doc
             /// @dev Executes a delegatecall to the resolved facet address.
             /// @param idx The index of the facet layout in storage.
             /// @param totalSize Total calldata length available.
@@ -82,6 +115,7 @@ contract CentoRouter {
         }
     }
     
+    /// @notice Accepts plain ETH transfers.
     receive() external payable {}
 }
 // thanks to routing strategy, facets can also implement receive functions and handle payments there

@@ -2,13 +2,8 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
-/**
- * @title LibBitmap Composition Tests
- *
- * Tests cross-function interactions and complex scenarios
- */
 contract LibBitmapCompositionTest is LibBitmapTestSetup {
 
     function test_Composition_FillAndPop_RoundTrip() public view {

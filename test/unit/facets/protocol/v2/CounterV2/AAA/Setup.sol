@@ -9,7 +9,7 @@ import {CounterV2Assert} from "./Assert.sol";
 
 abstract contract CounterV2TestSetup is CounterV2Arrange, CounterV2Act, CounterV2Assert {
 
-    function lc_create() internal override {
+    function setUp() public {
         c = new CounterV2();
         ch = $CounterV2.wrap(address(c));
     }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {Test} from "forge-std/Test.sol";
-import {bitmap256, u, w} from "src/cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {LibCento} from "src/cento/libraries/LibCento.sol";
 
 abstract contract CentoArrange is Test {
@@ -17,14 +17,14 @@ abstract contract CentoArrange is Test {
             bytes32(CS_FACETS + index), 
             bytes32(uint256(uint160(facet)))
         );
-        bitmap256 bitmap = w(uint256(vm.load(target, 
+        bitmap256 bitmap = bitmap256.wrap(uint256(vm.load(target, 
             bytes32(CS_BITMAP)
         )));
         if (facet == address(0)) bitmap = bitmap.clearSlotAt(index);
         else bitmap = bitmap.fillSlotAt(index);
         vm.store(target, 
             bytes32(CS_BITMAP), 
-            bytes32(u(bitmap))
+            bytes32(bitmap256.unwrap(bitmap))
         );
     }
 

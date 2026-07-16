@@ -2,19 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256, u} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title PopFirstFilledSlot Tests
- * @notice Test LibBitmap.popFirstFilledSlot via interface compliance
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256)
- * - Output: (nextBitmap bitmap256, index uint8)
- * - Behavior: Returns index of lowest set bit, clears that bit
- * - Reverts: If bitmap is 0 (no filled slots)
- */
 contract PopFirstFilledSlotTest is LibBitmapTestSetup {
 
     // === Input: Single Bit ===
@@ -96,7 +86,7 @@ contract PopFirstFilledSlotTest is LibBitmapTestSetup {
     // === Interface Compliance (Fuzz Tests) ===
 
     function testFuzz_Pop_Complies(bitmap256 bitmap) public view {
-        vm.assume(u(bitmap) != u(EMPTY_BITMAP));
+        vm.assume(bitmap256.unwrap(bitmap) != bitmap256.unwrap(EMPTY_BITMAP));
         then_CompliesWith_PopFirstFilledSlot(bitmap);
     }
 }

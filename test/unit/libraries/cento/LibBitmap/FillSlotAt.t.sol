@@ -2,18 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title FillSlotAt Tests
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256), index (uint8)
- * - Output: nextBitmap (bitmap256)
- * - Behavior: Sets bit at index
- * - Idempotent: Filling already-filled slot is no-op
- */
 contract FillSlotAtTest is LibBitmapTestSetup {
 
     function test_Fill_EmptyBitmap_SetsBit() public view {

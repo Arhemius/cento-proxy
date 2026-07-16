@@ -2,17 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title CountFilledSlots Tests
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256)
- * - Output: count (uint16)
- * - Behavior: Returns number of set bits
- */
 contract CountFilledSlotsTest is LibBitmapTestSetup {
 
     function test_Count_EmptyBitmap_Returns0() public view {

@@ -2,16 +2,8 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
-/**
- * @title IsSlotOccupied Tests
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256), index (uint8)
- * - Output: occupied (bool)
- * - Behavior: Returns true if bit at index is set
- */
 contract IsSlotOccupiedTest is LibBitmapTestSetup {
 
     function test_Occupied_EmptyBitmap_False() public view {

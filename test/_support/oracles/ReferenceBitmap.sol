@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {IBitmap} from "support/interfaces/IBitmap.sol";
-import {bitmap256, u, w} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
 /**
  * @title ReferenceBitmap
@@ -35,12 +35,12 @@ contract ReferenceBitmap is IBitmap {
     }
 
     function popFirstFilledSlot(bitmap256 bitmap) external pure override returns (bitmap256 nextBitmap, uint8 index) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         for (uint16 i = 0; i < 256; i++) {
             if (self.slots[i]) {
                 index = _unsafeToUint8(i);
                 self.slots[i] = false;
-                nextBitmap = w(_toUint256(self));
+                nextBitmap = bitmap256.wrap(_toUint256(self));
                 return (nextBitmap, index);
             }
         }
@@ -48,7 +48,7 @@ contract ReferenceBitmap is IBitmap {
     }
 
     function getFirstEmptySlot(bitmap256 bitmap) external pure override returns (uint8 index) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         for (uint16 i = 0; i < 256; i++) {
             if (!self.slots[i]) {
                 return _unsafeToUint8(i);
@@ -58,26 +58,26 @@ contract ReferenceBitmap is IBitmap {
     }
 
     function countFilledSlots(bitmap256 bitmap) external pure override returns (uint16 count) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         for (uint16 i = 0; i < 256; i++) {
             if (self.slots[i]) count++;
         }
     }
 
     function isSlotOccupied(bitmap256 bitmap, uint8 index) external pure override returns (bool) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         return self.slots[index];
     }
 
     function fillSlotAt(bitmap256 bitmap, uint8 index) external pure override returns (bitmap256 nextBitmap) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         self.slots[index] = true;
-        nextBitmap = w(_toUint256(self));
+        nextBitmap = bitmap256.wrap(_toUint256(self));
     }
 
     function clearSlotAt(bitmap256 bitmap, uint8 index) external pure override returns (bitmap256 nextBitmap) {
-        Bitmap memory self = _fromUint256(u(bitmap));
+        Bitmap memory self = _fromUint256(bitmap256.unwrap(bitmap));
         self.slots[index] = false;
-        nextBitmap = w(_toUint256(self));
+        nextBitmap = bitmap256.wrap(_toUint256(self));
     }
 }

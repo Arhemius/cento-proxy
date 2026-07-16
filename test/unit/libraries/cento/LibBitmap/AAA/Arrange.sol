@@ -2,12 +2,8 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTest} from "./Base.t.sol";
-import {bitmap256, u, w} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 
-/**
- * @title LibBitmap Arrange Layer
- * @notice GIVEN clauses - pure bitmap state preparation
- */
 abstract contract LibBitmapArrange is LibBitmapTest {
     // === Bitmap Builders ===
 
@@ -20,7 +16,7 @@ abstract contract LibBitmapArrange is LibBitmapTest {
     }
 
     function given_SingleBit(uint8 index) internal pure returns (bitmap256) {
-        return w(uint256(1) << index);
+        return bitmap256.wrap(uint256(1) << index);
     }
 
     function given_MultipleBits(uint8[] memory indices) internal pure returns (bitmap256 bitmap) {
@@ -28,7 +24,7 @@ abstract contract LibBitmapArrange is LibBitmapTest {
         for (uint256 i = 0; i < indices.length; i++) {
             _bitmap |= (uint256(1) << indices[i]);
         }
-        bitmap = w(_bitmap);
+        bitmap = bitmap256.wrap(_bitmap);
     }
 
     function given_Range(uint8 start, uint8 end) internal pure returns (bitmap256 bitmap) {
@@ -37,10 +33,10 @@ abstract contract LibBitmapArrange is LibBitmapTest {
         for (uint16 i = start; i <= end; i++) {
             _bitmap |= (uint256(1) << i);
         }
-        bitmap = w(_bitmap);
+        bitmap = bitmap256.wrap(_bitmap);
     }
 
     function given_AllExcept(uint8 excludedIndex) internal view returns (bitmap256) {
-        return w(u(FULL_BITMAP) & ~(uint256(1) << excludedIndex));
+        return bitmap256.wrap(bitmap256.unwrap(FULL_BITMAP) & ~(uint256(1) << excludedIndex));
     }
 }

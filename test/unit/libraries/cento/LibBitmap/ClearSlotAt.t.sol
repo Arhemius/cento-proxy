@@ -2,18 +2,9 @@
 pragma solidity ^0.8.29;
 
 import {LibBitmapTestSetup} from "./AAA/Setup.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import "support/builtins/Builtins.sol";
 
-/**
- * @title ClearSlotAt Tests
- *
- * FUNCTION SPEC:
- * - Input: bitmap (bitmap256), index (uint8)
- * - Output: nextBitmap (bitmap256)
- * - Behavior: Clears bit at index
- * - Idempotent: Clearing already-empty slot is no-op
- */
 contract ClearSlotAtTest is LibBitmapTestSetup {
     
     function test_Clear_FullBitmap_ClearsBit() public view {

@@ -2,10 +2,13 @@
 pragma solidity ^0.8.29;
 
 /// @title ERC-173 Contract Ownership Standard
-///  Note: the ERC-165 identifier for this interface is 0x7f5828d0
+/// @notice Interface for the ERC-173 ownership standard.
+/// @dev The ERC-165 interface identifier is `0x7f5828d0`.
 /* is ERC165 */
 interface IERC173 {
-    /// @dev This emits when ownership of a contract changes.
+    /// @notice Emitted when contract ownership changes.
+    /// @param previousOwner Previous owner.
+    /// @param newOwner New owner.
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /// @notice Get the address of the owner

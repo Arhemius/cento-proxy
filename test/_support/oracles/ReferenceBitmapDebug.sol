@@ -2,7 +2,7 @@
 pragma solidity ^0.8.29;
 
 import {IBitmap} from "support/interfaces/IBitmap.sol";
-import { bitmap256, u, w } from "cento/libraries/LibBitmap.sol";
+import { bitmap256 } from "cento/types/bitmap256.sol";
 
 /**
  * @title ReferenceBitmapDebug
@@ -44,18 +44,18 @@ contract ReferenceBitmapDebug is IBitmap {
     }
 
     function popFirstFilledSlot(bitmap256 _bitmap) external pure override returns (bitmap256 nextBitmap, uint8 index) {
-        uint256 bitmap = u(_bitmap);
+        uint256 bitmap = bitmap256.unwrap(_bitmap);
         if (bitmap == 0) revert NoFreeSlots();
         uint256 lsb;
         unchecked {
             lsb = bitmap & (~bitmap + 1);
         } 
         index = _lsbIndex(lsb);
-        nextBitmap = w(bitmap ^ lsb);
+        nextBitmap = bitmap256.wrap(bitmap ^ lsb);
     }
 
     function getFirstEmptySlot(bitmap256 _bitmap) external pure override returns (uint8 index) {
-        uint256 bitmap = u(_bitmap);
+        uint256 bitmap = bitmap256.unwrap(_bitmap);
         uint256 free;
         unchecked {
             free = ~bitmap & (bitmap + 1);
@@ -65,7 +65,7 @@ contract ReferenceBitmapDebug is IBitmap {
     }
 
     function countFilledSlots(bitmap256 _bitmap) external pure override returns (uint16 count) {
-        uint256 bitmap = u(_bitmap);
+        uint256 bitmap = bitmap256.unwrap(_bitmap);
         for (; bitmap != 0; bitmap &= (bitmap - 1)) { 
             unchecked { count++; } 
         }
@@ -76,14 +76,14 @@ contract ReferenceBitmapDebug is IBitmap {
     }
     
     function isSlotOccupied(bitmap256 _bitmap, uint8 index) external pure override returns (bool) {
-        return (u(_bitmap) & _mask(index)) != 0;
+        return (bitmap256.unwrap(_bitmap) & _mask(index)) != 0;
     }
 
     function fillSlotAt(bitmap256 _bitmap, uint8 index) external pure override returns (bitmap256) {
-        return w(u(_bitmap) | _mask(index));
+        return bitmap256.wrap(bitmap256.unwrap(_bitmap) | _mask(index));
     }
 
     function clearSlotAt(bitmap256 _bitmap, uint8 index) external pure override returns (bitmap256) {
-        return w(u(_bitmap) & ~_mask(index));
+        return bitmap256.wrap(bitmap256.unwrap(_bitmap) & ~_mask(index));
     }
 }

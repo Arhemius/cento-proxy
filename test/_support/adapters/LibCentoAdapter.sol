@@ -3,7 +3,7 @@ pragma solidity ^0.8.29;
 
 import {Facet} from "cento/structs/Facet.sol";
 import {LibCento as lc} from "cento/libraries/LibCento.sol";
-import {bitmap256} from "cento/libraries/LibBitmap.sol";
+import {bitmap256} from "cento/types/bitmap256.sol";
 import {LibCentoHarness} from "support/harnesses/LibCentoHarness.sol";
 import {LibCentoDebugAdapter} from "./LibCentoDebugAdapter.sol";
 

@@ -8,13 +8,9 @@ import {CounterV1Assert} from "./Assert.sol";
 
 abstract contract CounterV1TestSetup is CounterV1Act, CounterV1Assert {
 
-    function lc_create() internal virtual override {
+    function setUp() public {
         c = new CounterV1Adapter();
-        target(address(c));
-    }
-
-    function lc_bind() internal virtual override {
-        ch = CounterV1Harness(testTarget);
+        ch = CounterV1Harness(address(c));
     }
 
 }

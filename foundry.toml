@@ -2,14 +2,14 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-solc = "0.8.35"
+solc = "0.8.36"
 no_match_coverage = "(test|script|interaction)"
 evm_version = "prague"
 fs_permissions = [
     { access = "read-write", path = "./logs" },
     { access = "read", path = "./broadcast" }
 ]
-ignored_warnings_from = ["lib/forge-std/"]
+# ignored_warnings_from = ["lib/forge-std/"]
 
 [profile.release]
 optimizer = true
@@ -40,5 +40,20 @@ runs = 128
 
 [profile.full.fuzz]
 runs = 256
+
+
+[doc]
+book = "book.toml"
+ignore = [
+    "src/cento/libraries/LibDebug.sol",
+    "src/cento/migrators/CentoMigrator.sol"
+]
+
+
+
+
+
+
+
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
