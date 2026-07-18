@@ -80,8 +80,10 @@ contract CentoRouterGasTest is CentoTM, GasReportLogger, SimpleActors, CentoArra
     }
 }
 
+//   ======== Isolation mode ========
+
 //   [Gas]    ╭─ Cento Router ───╮
 //   [Gas]    │                  ├───────────┬───────────╮
-//   [Gas]    │ cento            │ pure      │   373 gas │
-//   [Gas]    │                  │ append    │   409 gas │
+//   [Gas]    │ cento            │ pure      │ 4,873 gas │
+//   [Gas]    │                  │ append    │ 4,909 gas │
 //   [Gas]    ╰──────────────────┴───────────┴───────────╯

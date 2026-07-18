@@ -1,0 +1,632 @@
+---
+eip: <to be assigned>
+title: "Cento Proxy: Modular Proxy Standard with Index-Based Routing"
+description: A modular proxy architecture that uses compact facet indices for protocol routing while preserving function selectors for Ethereum interface compatibility.
+author: Artem Buchikhin (@Arhemius)
+discussions-to: https://ethereum-magicians.org/t/<discussion-link>
+status: Draft
+type: Standards Track
+category: ERC
+created: 2026-07-17
+requires: 165, 173
+---
+
+# Abstract
+
+This standard defines a modular proxy architecture for the Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility routing**.
+
+Unlike existing modular proxy standards, this specification identifies protocol facets using compact routing indices appended to calldata, while preserving conventional function selectors exclusively for compatibility with Ethereum standards and external tooling.
+
+This separation enables facet-level protocol composition with significantly reduced routing metadata, eliminates selector management overhead, and avoids selector collision risks while maintaining full compatibility with existing Ethereum infrastructure, wallets, explorers, and development tools.
+
+The specification defines the routing model, calldata format, atomic upgrade semantics, facet management requirements, introspection interfaces, and security considerations necessary for interoperable implementations.
+
+# Motivation
+
+The Ethereum ecosystem has demonstrated strong demand for modular smart contract architectures. ERC-2535 introduced selector-based modular routing, enabling protocols to distribute logic across multiple facet contracts while maintaining a single external address. This approach has proven valuable in production deployments.
+
+However, selector-centric routing introduces persistent engineering challenges:
+
+1. **Routing metadata scales with function count**: As protocols evolve, selector tables grow proportionally with externally callable functions, not module count. Each upgrade requires selector management.
+
+2. **Selector collision risk**: Developers must prevent unintended selector collisions between facets. While collisions are rare, they represent an ongoing concern during protocol composition and integration.
+
+3. **Misaligned abstractions**: Function selectors identify externally observable behavior, while facets represent implementation modules. Conflating these concerns constrains both.
+
+4. **Upgrade complexity**: Multi-facet atomic upgrades require managing selector state for potentially hundreds of functions.
+
+This standard approaches modular upgrades from a different architectural perspective by separating these two independent concerns:
+
+- **Protocol routing**: Identifies which implementation module handles execution
+- **Compatibility routing**: Identifies which standardized interface is being invoked
+
+## Architectural Innovation
+
+Function selectors were designed to identify externally callable entry points and enable ABI encoding/decoding. They succeed at this purpose.
+
+In selector-centric modular architectures, selectors additionally serve as facet identifiers. This conflation creates constraints:
+
+- Adding a function requires adding a selector and routing entry
+- Removing a function requires removing both
+- Protocol composition becomes selector-dependent rather than module-dependent
+
+This standard treats protocol routing and interface compatibility as independent concerns:
+
+- **Protocol routing** uses compact facet indices (one byte per facet)
+- **Interface compatibility** uses standard function selectors
+
+Result: facets become first-class routing entities, selector tables remain focused on interoperability, and routing metadata scales with module count rather than function count.
+
+# Specification
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
+
+## Terminology
+
+**Router**: The contract that receives external calls and delegates execution to facet contracts.
+
+**Facet**: A contract implementing one or more protocol operations. Each facet is identified by exactly one routing index.
+
+**Routing Index**: An 8-bit unsigned integer (0–255) identifying a facet in the routing table. This specification standardizes 8-bit indices; implementations MAY support wider indices while preserving interoperability.
+
+**Routing Table**: The mapping used by the router associating routing indices to active facet addresses.
+
+**Protocol Function**: A function invoked through routing-index-based dispatch.
+
+**Compatibility Function**: A function exposed for interoperability with Ethereum standards (e.g., ERC-165, ERC-173) or external tooling. Compatibility functions use conventional function selector dispatch.
+
+**Atomic Update**: A single transaction modifying the routing table (installing, replacing, or removing facets) with all-or-nothing semantics.
+
+## Routing Architecture
+
+This standard defines a hybrid routing model with two independent dispatch mechanisms coexisting without interference.
+
+### Protocol Routing
+
+Protocol-specific functions are invoked by appending a routing index (one byte) to calldata:
+
+```
++------------------+---------------+
+| Arbitrary Bytes  | Routing Index |
++------------------+---------------+
+  (0 or more)       (1 byte)
+```
+
+The preceding bytes may be ABI-encoded function calls, raw data, or empty.
+
+The router MUST:
+1. Receive the call with appended routing metadata
+2. Extract the routing index from the final byte
+3. Validate the routing index resolves to an active facet
+4. Exclude the routing byte from delegated calldata
+5. Delegate execution to the facet via `DELEGATECALL`
+
+The delegated facet receives all bytes except the final routing index exactly as provided by the caller. The facet interprets this calldata according to its own logic (standard ABI decoding, raw parsing, or receive function handling if empty).
+
+### Compatibility Routing
+
+Compatibility functions continue using conventional selector-based dispatch:
+
+```
++----------+-----------+
+| Selector | Function  |
+|          | Arguments |
++----------+-----------+
+(4 bytes)
+```
+
+Examples: `supportsInterface(bytes4)` (ERC-165), `owner()` (ERC-173).
+
+The router MUST detect compatibility function selectors and dispatch them without appending routing metadata. Compatibility routing coexists with protocol routing without mutual interference. Callers MAY also reach given functions with Protocol Routing if common interaction logic is primary.
+
+### Calldata Encoding
+
+Protocol calls append a routing index (one byte) to any preceding bytes:
+
+```
++------------------+---------------+
+| Calldata (0+ B)  | Index (1 B)   |
++------------------+---------------+
+```
+
+The preceding bytes may be:
+- ABI-encoded function calls: `function(args) + index`
+- Raw data: `arbitrary bytes + index`
+- Empty: `index byte only` (triggers receive function)
+
+The router extracts and validates the final byte, then removes it. The delegated facet receives all preceding bytes exactly as provided, regardless of format.
+
+**Examples:**
+- `function(args) + index byte` → facet receives `function(args)`
+- `raw data + index byte` → facet receives `raw data`  
+- `index byte only` → facet receives empty calldata (triggers receive function)
+
+Compatibility functions use standard selector dispatch and do not append routing metadata.
+
+### Delegatecall Semantics
+
+Protocol execution uses `DELEGATECALL`:
+
+```solidity
+delegatecall(gas(), facetAddress, calldata, calldataSize, 0, 0)
+```
+
+The delegated facet executes within the storage context of the router. The router MUST:
+
+- Forward all available gas to delegated execution
+- Propagate return data unchanged to the caller
+- Propagate revert data unchanged to the caller
+
+### Fallback Function Example Implementation
+
+```solidity
+fallback() external payable {
+    assembly {
+        let cds := calldatasize()
+        let idx := 0
+        let stripLen := 0
+            
+        // Determine routing: protocol (odd) or compatibility (even)
+        if and(cds, 1) {
+            idx := byte(0, calldataload(sub(cds, 1)))
+            stripLen := 1
+        } else {
+            // Compatibility routing: dispatch by selector
+            switch shr(224, calldataload(0))
+            case 0x01ffc9a7 { idx := ERC165_INDEX }  // ERC-165
+            case 0x8da5cb5b { idx := ERC173_INDEX }  // ERC-173: owner()
+            case 0xf2fde38b { idx := ERC173_INDEX }  // ERC-173: transferOwnership()
+            default { revert(0, 0) }
+        }
+            
+        // Unified dispatch
+        let facet := sload(add(STORAGE_SLOT, idx))
+        if iszero(facet) {
+            mstore(0x00, ERR_FACET_NOT_FOUND)
+            mstore(0x04, idx)
+            revert(0x00, 0x24)
+        }
+        
+        let size := sub(cds, stripLen)
+        calldatacopy(0, 0, size)
+        let ok := delegatecall(gas(), facet, 0, size, 0, 0)
+        returndatacopy(0, 0, returndatasize())
+            
+        switch ok
+        case 0 { revert(0, returndatasize()) }
+        default { return(0, returndatasize()) }
+    }
+}
+```
+
+## Facet Identification
+
+Each installed facet SHALL be identified by exactly one routing index.
+
+Routing indices identify protocol modules rather than individual functions.
+
+Multiple externally callable protocol functions MAY be implemented by the same facet without requiring additional routing metadata.
+
+Protocol-specific function selectors are not required to be globally unique across different facets.
+
+## Facet Management
+
+Implementations MUST perform protocol upgrades at the granularity of facets rather than individual function selectors.
+
+Each facet SHALL be associated with exactly one routing index within the routing table.
+
+A compliant implementation MUST support the following atomic facet management operations:
+
+- installation of a new facet;
+- replacement of an existing facet;
+- removal of an existing facet.
+
+Implementations MAY expose these operations through any authorization mechanism.
+
+### Initial State
+
+Routers MUST initialize with three core facets installed at standard indices:
+
+- Index 0: IFacetManager (facet management)
+- Index 1: ERC-173 Ownership (owner, transferOwnership)
+- Index 2: ERC-165 Observability (interface detection and facet introspection)
+
+Initial deployment MAY emit an AtomicUpdate event documenting these core facets, but this is OPTIONAL.
+
+### Atomic Updates
+
+All facet modifications MUST be performed atomically.
+
+A single transaction MAY:
+
+- install multiple facets;
+- replace multiple facets;
+- remove multiple facets;
+- register new interface identifiers;
+- unregister existing interface identifiers;
+- execute storage migrations.
+
+Either every modification succeeds or the entire transaction reverts.
+
+### Storage Migration
+
+Storage migrations are OPTIONAL.
+
+If supplied during an upgrade, a migration contract executes through `delegatecall` immediately after the routing table has been updated.
+
+This enables:
+
+- Storage transformations between protocol versions
+- Initialization of new storage slots
+- Cleanup of deprecated storage
+
+If migration fails, the entire upgrade MUST revert.
+
+If no migration is required, the upgrade simply omits the migration contract.
+
+## Facet Management Interface
+
+Facet management is the mechanism by which protocol behavior evolves. The router's routing table is its state; modifying this table modifies protocol behavior atomically.
+
+The IFacetManager interface standardizes how facet updates are performed. All facet modifications (installation, replacement, removal) MUST occur through this interface with atomic semantics: either all modifications in a single transaction succeed, or the entire transaction reverts.
+
+Implementations MUST emit an AtomicUpdate event for every atomic update. This event provides an immutable, queryable record of all routing table modifications, enabling indexers, governance systems, and auditing tools to track protocol evolution.
+
+```solidity
+interface IFacetManager {
+    /// @notice Atomically updates the protocol configuration.
+    /// @param setF Facets to install, replace, or remove.
+    /// @param addI ERC interface identifiers to register.
+    /// @param remI ERC interface identifiers to unregister.
+    /// @param migrator Optional storage migration contract.
+    /// @param _calldata Encoded migration calldata.
+    /// @dev Executes all routing and interface updates before performing
+    ///      an optional storage migration.
+    function atomicUpdate(
+        Facet[] calldata setF, 
+        bytes4[] calldata addI, 
+        bytes4[] calldata remI,
+        address migrator, 
+        bytes calldata _calldata
+    ) external;
+
+    /// @notice Emitted after an atomic protocol update.
+    /// @param setF Updated facet assignments.
+    /// @param addI Registered interface identifiers.
+    /// @param remI Unregistered interface identifiers.
+    /// @param migrator Storage migration contract.
+    /// @param _calldata Migration calldata.
+    event AtomicUpdate(
+        Facet[] setF, 
+        bytes4[] addI, 
+        bytes4[] remI, 
+        address migrator, 
+        bytes _calldata
+    );
+}
+```
+
+## Protocol Introspection
+
+The IObservability interface enables external systems to query the current state of the protocol's routing table. This is essential for:
+
+- Wallets determining which functions a protocol supports
+- Block explorers displaying protocol composition
+- SDKs generating type-safe client interfaces
+- On-chain governance systems querying routing state
+- Auditing tools verifying protocol configuration
+
+The observability functions provide multiple views into the routing table:
+
+- **getFacets()** returns only the installed facet addresses (useful for understanding protocol composition at the address level)
+- **getFacetEntries()** returns the complete (index, address) mapping (provides the full routing table for detailed inspection)
+- **getFacetAt(index)** queries a specific slot (efficient for on-chain routing table verification)
+- **getFacetCount()** reports the number of installed facets (useful for iteration and space utilization)
+- **getFirstFreeSlot()** identifies available routing capacity (enables efficient facet allocation during upgrades)
+
+These functions operate in `view` mode and impose no state changes, making them safe for external tooling and governance systems to call repeatedly.
+
+```solidity
+interface IObservability {
+
+    /// @notice Returns all installed facet addresses.
+    /// @return Array of installed facet addresses.
+    function getFacets() external view returns (address[] memory);
+
+    /// @notice Returns all installed facet entries.
+    /// @dev Each entry contains both the routing index and facet address.
+    /// @return Array of installed facet entries.
+    function getFacetEntries() external view returns (Facet[] memory);
+
+    /// @notice Returns the facet installed at a routing index.
+    /// @param index Routing index.
+    /// @return Facet address, or the zero address if the slot is empty.
+    function getFacetAt(uint8 index) external view returns (address);
+
+    /// @notice Returns the number of installed facets.
+    /// @return Number of occupied routing slots.
+    function getFacetCount() external view returns (uint16);
+
+    /// @notice Returns the first available routing slot.
+    /// @return Index of the first unoccupied routing slot.
+    /// @dev Reverts if all routing slots are occupied.
+    function getFirstFreeSlot() external view returns (uint8);
+}
+```
+
+## ERC-165 Integration
+
+ERC-165 interface detection allows external systems to query which standards a contract supports. A router MUST accurately report its interface identifiers so external tooling can correctly interact with it.
+
+Routers MUST report the following interface identifiers:
+
+- `0x01ffc9a7` (ERC-165 itself)
+- `0x8da5cb5b` (ERC-173 owner)
+- `0xf2fde38b` (ERC-173 transferOwnership)
+- `0x5378f98e` (IFacetManager)
+- `0x1c60a259` (IObservability)
+
+Additional interface identifiers MUST be reported if the corresponding facet is installed and supports them. This allows wallets and explorers to discover protocol-specific interfaces dynamically as facets are installed.
+
+## ERC-173 Integration
+
+Routers MUST implement ERC-173 ownership:
+
+```solidity
+interface IERC173 {
+    function owner() external view returns (address);
+    function transferOwnership(address newOwner) external;
+}
+```
+Ownership control MUST gate access to atomic updates. The authorization mechanism is implementation-specific; this standard does not prescribe it. See [Security Considerations](#security-considerations) for authorization requirements.
+
+# Backwards Compatibility
+
+This standard preserves compatibility with existing Ethereum standards by retaining conventional selector-based dispatch for compatibility interfaces.
+
+Protocols implementing this standard remain compatible with existing tooling supporting:
+
+- ERC-165 interface detection;
+- ERC-173 ownership;
+- ABI encoding and decoding;
+- standard Solidity external function calls;
+- wallets;
+- block explorers;
+- development frameworks.
+
+No modifications to Solidity, the EVM, ABI encoding, or Ethereum protocol rules are required.
+
+Because protocol routing metadata is consumed entirely by the router before delegated execution, delegated facets observe calldata identical to that of conventional contract calls.
+
+Accordingly, existing Solidity code may be reused inside facets without modification.
+
+Selector-centric modular proxy implementations are not automatically compliant with this standard because they employ selector-based protocol routing rather than routing-index-based dispatch.
+
+Likewise, compliant implementations of this standard do not expose selector routing tables equivalent to selector-centric modular architectures.
+
+Both routing models may coexist within the Ethereum ecosystem.
+
+# Rationale
+
+## Why Index-Based Routing?
+
+**Scaling**: Selector-based systems scale routing metadata with function count. Index-based systems scale with facet count. Most protocols have far fewer facets than functions.
+
+**Atomicity**: Replacing a facet requires updating exactly one routing entry. Selector systems require updating multiple entries (one per function).
+
+**Simplicity**: Protocol developers organize code around facets, not selectors. Index-based routing reflects this naturally.
+
+**Collision Safety**: Attachment of facet identity to index allows multiple functions with identical selectors scattered across multiple facets, eliminating selector collision risk.
+
+## Routing Index Width
+
+This specification standardizes an 8-bit routing index.
+
+One-byte routing metadata minimizes calldata overhead while supporting up to 256 routing entries.
+
+The standardized routing width simplifies interoperability between compliant implementations.
+
+Protocols requiring larger routing tables MAY extend the routing index width or compose additional routing mechanisms.
+
+Such extensions remain outside the scope of this specification provided they preserve the routing semantics defined herein.
+
+## Storage Independence
+
+Routing semantics are intentionally independent from storage layout.
+
+Storage organization represents an implementation concern rather than an interoperability concern.
+
+Consequently, this standard neither requires nor discourages any particular storage management methodology.
+
+Future storage standards remain fully compatible with this routing architecture.
+
+## Separation of Routing and Compatibility
+
+Function selectors serve two purposes in selector-centric architectures:
+
+1. **Routing**: Identifying which facet should execute
+2. **Compatibility**: Identifying which Ethereum interface is being invoked
+
+These evolve under different constraints. Routing benefits from facet-level abstraction. Compatibility requires backward-compatible selector tables.
+
+This standard separates these concerns:
+
+- **Protocol routing**: Facet indices (implementation-focused)
+- **Compatibility routing**: Function selectors (interoperability-focused)
+
+Each mechanism can evolve independently.
+
+## Relationship to ERC-2535
+
+ERC-2535 (Diamond) pioneered modular proxy architectures. This standard shares the same goal: enabling protocol modularity.
+
+The architectural difference is fundamental:
+
+- **ERC-2535**: Selector → function mapping → facet dispatch
+- **This standard**: Facet index → facet dispatch (selectors reserved for compatibility)
+
+Both standards may coexist. Protocols requiring maximum routing flexibility and can manage large selector tables might prefer ERC-2535. Protocols prioritizing upgrade efficiency and facet-level modularity should evaluate this standard.
+
+## Facets as First-Class Protocol Components
+
+Protocol developers organize software around implementation modules rather than individual selectors.
+
+Development, auditing, testing, deployment, upgrades, documentation, and maintenance naturally occur at the facet level.
+
+This standard therefore treats facets as first-class routing entities.
+
+Protocol routing metadata reflects software architecture directly instead of indirectly through exported selectors.
+
+## Scope
+
+This specification intentionally standardizes routing semantics rather than implementation details.
+
+Accordingly, it does not mandate:
+
+- storage layout;
+- authorization model;
+- deployment methodology;
+- upgrade governance;
+- facet discovery algorithms;
+- routing table implementation.
+
+Implementations remain free to innovate within these areas while preserving interoperability defined by this specification.
+
+## Eight-Bit Indices
+
+This specification standardizes 8-bit routing indices (0–255). Why 8 bits?
+
+- **One byte overhead**: Appending one byte minimizes calldata growth
+- **256 facets**: Sufficient for virtually all protocol architectures
+- **Simplicity**: Byte-aligned routing simplifies assembly implementation
+- **Gas efficiency**: Minimal additional overhead vs. selector dispatch
+
+## Immutable Router
+
+The router contract SHOULD be immutable after deployment. This:
+
+- Reduces attack surface (no router logic upgrades)
+- Clarifies responsibility (facets contain logic)
+- Improves auditing (fixed routing algorithm)
+
+Implementations MAY include router upgrades if governance permits, but SHOULD avoid this.
+
+# Security Considerations
+
+## Authorization
+
+Atomic updates directly control protocol behavior. Implementations MUST:
+
+- Restrict `atomicUpdate` to authorized entities
+- Enforce time-locks or multi-sig for sensitive upgrades
+- Log all routing table modifications
+
+The authorization mechanism is implementation-specific; this standard does not prescribe it.
+
+## Delegatecall Risks
+
+All proxy architectures using `DELEGATECALL` face shared risks:
+
+- Delegated code executes in the router's storage context
+- Storage collisions between facets can cause data corruption
+- Malicious facets can steal funds or corrupt state
+
+Mitigation:
+
+- Use namespaced storage (e.g., ERC-7201) to isolate facet state
+- Audit all facets before installation
+- Implement upgrade governance requiring multi-step verification
+
+## Routing Validation
+
+Routers MUST validate routing metadata before delegation:
+
+1. **Non-zero calldata**: Empty calldata MUST NOT reach fallback routing. Use `receive()`.
+2. **Valid indices**: Routing indices MUST reference installed facets.
+3. **No zero addresses**: Routing entries MUST NOT target address(0).
+4. **No self-routing**: Routers MUST NOT delegate to themselves.
+
+Failure to validate can result in:
+- Gas exhaustion (empty calldata calldata copy overflow)
+- Silent failures (zero address delegation)
+- Infinite delegation loops (router self-delegation)
+
+## Selector Collisions
+
+While protocol functions do not require unique selectors, compatibility functions MUST:
+
+- ERC-165: `supportsInterface(bytes4)` — `0x01ffc9a7`
+- ERC-173: `owner()` — `0x8da5cb5b`
+- ERC-173: `transferOwnership(address)` — `0xf2fde38b`
+
+Routers MUST dispatch these selectors to the appropriate facets. Custom compatibility facets MUST avoid colliding with these standard selectors.
+
+## Storage Migration
+
+If used, storage migrations introduce upgrade risks:
+
+- Migrations MUST preserve protocol invariants
+- Migrations SHOULD be independently audited
+- If migration fails, the entire upgrade MUST revert
+- Multi-step migrations SHOULD employ careful sequencing to prevent partial state corruption
+
+## Facet Upgrades
+
+Replacing a facet changes protocol behavior. Implementations SHOULD:
+
+- Verify new facets are audited before installation
+- Use governance time-locks before activation
+- Perform incremental testing before full deployment
+- Maintain rollback procedures
+
+## Empty Calldata
+
+Protocol routing removes routing metadata from calldata before delegation.
+
+Attempting to strip routing metadata from empty calldata may underflow the computed calldata length, causing `CALLDATACOPY` to attempt copying an effectively unbounded memory region and exhausting all available gas.
+
+Compliant implementations MUST prevent fallback routing from executing on empty calldata.
+
+Implementations SHOULD provide a `receive()` function that consumes empty calldata before fallback routing logic is reached.
+
+Equivalent protection mechanisms are also acceptable.
+
+## Routing Metadata Validation
+
+Routers MUST validate routing metadata before attempting delegated execution.
+
+Malformed routing metadata MUST cause the transaction to revert.
+
+Implementations SHOULD minimize the amount of work performed before routing metadata validation.
+
+# Reference Implementation
+
+A complete reference implementation demonstrating all aspects of this specification is available at:
+
+> **Repository**: https://github.com/Arhemius/cento-proxy
+
+The reference implementation includes:
+
+- `CentoRouter`: Routing dispatch logic (assembly-optimized)
+- `FacetManager`: Atomic facet management
+- `Ownership`: ERC-173 ownership
+- `Observability`: Facet introspection
+- Complete test suite with gas benchmarks
+- Examples demonstrating deployment and upgrades
+- Storage migration examples using ERC-7201 namespacing
+
+# Future Extensions
+
+This standard intentionally constrains scope to routing semantics. Future ERC standards may extend it:
+
+- **Wider routing indices**: For protocols with >256 facets
+- **Hierarchical routing**: For complex multi-protocol compositions
+- **Standardized governance**: Voting mechanisms for upgrades
+- **Standardized storage migration**: Common migration patterns
+- **Facet metadata**: Standardized facet name/version/abi fields
+
+Such extensions remain compatible with this specification provided they preserve routing semantics.
+
+# Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).

@@ -9,7 +9,6 @@ import { IERC165 } from "./interfaces/IERC165.sol";
 import { CentoStorage as CS } from "./structs/CentoStorage.sol";
 import { bitmap256 } from "./types/bitmap256.sol";
 
-
 /// @title Cento Router
 /// @author Artem Buchikhin *(@Arhemius)* 
 /// @notice Entry point for the Cento Proxy protocol.
@@ -50,10 +49,6 @@ contract CentoRouter {
         cs.supportedInterfaces[type(IFacetManager).interfaceId] = true; 
         cs.supportedInterfaces[type(IObservability).interfaceId] = true;
     }
-
-    // TODO: Write the Stage 2 generator script
-    // You will have generator script and the config where you(dev) could specify the
-    // interfaces they tend to support, and add custom ones
 
     /// @notice Dispatches incoming function calls to the appropriate facet.
     /// @dev Uses two routing modes:
@@ -118,7 +113,6 @@ contract CentoRouter {
     /// @notice Accepts plain ETH transfers.
     receive() external payable {}
 }
-// thanks to routing strategy, facets can also implement receive functions and handle payments there
 
 // === BST Example ===
 //

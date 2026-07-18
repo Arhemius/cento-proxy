@@ -52,7 +52,9 @@ contract DiamondGasTest is DiamondTM, GasReportLogger, SimpleActors {
     }
 }
 
+//   ======== Isolation mode ========
+
 //   [Gas]    ╭─ Diamond Router ─╮
 //   [Gas]    │                  ├───────────┬───────────╮
-//   [Gas]    │ diamond          │           │   398 gas │
+//   [Gas]    │ diamond          │           │ 4,898 gas │
 //   [Gas]    ╰──────────────────┴───────────┴───────────╯
