@@ -15,7 +15,7 @@ requires: 165, 173
 
 This standard defines a modular proxy architecture for Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility routing**.
 
-Unlike existing modular proxy standards, this specification identifies protocol facets using compact routing indices appended to calldata, while preserving conventional function selectors exclusively for compatibility with Ethereum standards and external tooling.
+Unlike existing modular proxy standards, this specification identifies protocol facets using compact routing indices appended to calldata, while preserving conventional function selectors for compatibility with standardized Ethereum interfaces and external tooling.
 
 This separation enables facet-level protocol composition with significantly reduced routing metadata, eliminates selector management overhead, and avoids selector collision risks while maintaining full compatibility with existing Ethereum infrastructure, wallets, explorers, and development tools.
 
@@ -38,7 +38,7 @@ However, selector-centric routing introduces persistent engineering challenges:
 This standard approaches modular upgrades from a different architectural perspective by separating these two independent concerns:
 
 - **Protocol routing**: Identifies which implementation module handles execution
-- **Compatibility routing**: Identifies which standardized interface is being invoked
+- **Compatibility routing**: Preserves selector-based dispatch for standardized Ethereum interfaces
 
 ## Architectural Innovation
 
@@ -53,7 +53,7 @@ In selector-centric modular architectures, selectors additionally serve as facet
 This standard treats protocol routing and interface compatibility as independent concerns:
 
 - **Protocol routing** uses compact facet indices (one byte per facet)
-- **Interface compatibility** uses standard function selectors
+- **Interface compatibility** uses standard function selectors for Ethereum interfaces
 
 Result: facets become first-class routing entities, selector tables remain focused on interoperability, and routing metadata scales with module count rather than function count.
 
@@ -71,9 +71,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 **Routing Table**: The mapping used by the router associating routing indices to active facet addresses.
 
-**Protocol Function**: A function invoked through routing-index-based dispatch.
+**Protocol Function**: A function invoked through routing-index-based dispatch. Protocol functions do not require globally unique function selectors.
 
-**Compatibility Function**: A function exposed for interoperability with Ethereum standards (e.g., [ERC-165](./erc-165.md), [ERC-173](./erc-173.md)) or external tooling. Compatibility functions use conventional function selector dispatch.
+**Compatibility Function**: A function exposed for interoperability with standardized Ethereum interfaces. Compatibility functions use conventional function selector dispatch.
 
 **Atomic Update**: A single transaction modifying the routing table (installing, replacing, or removing facets) with all-or-nothing semantics.
 
@@ -83,7 +83,7 @@ This standard defines a hybrid routing model with two independent dispatch mecha
 
 ### Protocol Routing
 
-Protocol-specific functions are invoked by appending a routing index (one byte) to calldata:
+Protocol functions are invoked by appending a routing index (one byte) to calldata. 
 
 ```
 +------------------+---------------+
@@ -105,7 +105,7 @@ The delegated facet receives all bytes except the final routing index exactly as
 
 ### Compatibility Routing
 
-Compatibility functions continue using conventional selector-based dispatch:
+Compatibility functions use conventional selector-based dispatch for any standardized Ethereum interfaces that protocols expose: 
 
 ```
 +----------+-----------+
@@ -115,9 +115,9 @@ Compatibility functions continue using conventional selector-based dispatch:
 (4 bytes)
 ```
 
-Examples: `supportsInterface(bytes4)` (ERC-165), `owner()` (ERC-173).
+The router MUST detect compatibility function selectors and dispatch them without appending routing metadata. Compatibility routing coexists with protocol routing without mutual interference.
 
-The router MUST detect compatibility function selectors and dispatch them without appending routing metadata. Compatibility routing coexists with protocol routing without mutual interference. Callers MAY also reach given functions with Protocol Routing if common interaction logic is primary.
+Examples of standardized interfaces include [ERC-165](./erc-165.md) (interface detection) and [ERC-173](./erc-173.md) (ownership), though any Ethereum interface using function selectors is supported through compatibility routing.
 
 ### Calldata Encoding
 
@@ -151,11 +151,7 @@ Protocol execution uses `DELEGATECALL`:
 delegatecall(gas(), facetAddress, calldata, calldataSize, 0, 0)
 ```
 
-The delegated facet executes within the storage context of the router. The router MUST:
-
-- Forward all available gas to delegated execution
-- Propagate return data unchanged to the caller
-- Propagate revert data unchanged to the caller
+The delegated facet executes within the storage context of the router. The router MUST forward all available gas to delegated execution, propagate return data unchanged to the caller, and propagate revert data unchanged to the caller.
 
 ### Fallback Function Example Implementation
 
@@ -396,23 +392,13 @@ Ownership control MUST gate access to atomic updates. The authorization mechanis
 
 # Backwards Compatibility
 
-This standard preserves compatibility with existing Ethereum standards by retaining conventional selector-based dispatch for compatibility interfaces.
+This standard preserves compatibility with existing Ethereum standards by retaining conventional selector-based dispatch for standardized interfaces.
 
-Protocols implementing this standard remain compatible with existing tooling supporting:
-
-- ERC-165 interface detection;
-- ERC-173 ownership;
-- ABI encoding and decoding;
-- standard Solidity external function calls;
-- wallets;
-- block explorers;
-- development frameworks.
+Protocols implementing this standard remain compatible with existing tooling supporting standardized Ethereum interface queries, ABI encoding and decoding, standard Solidity external function calls, wallets, block explorers, and development frameworks.
 
 No modifications to Solidity, the EVM, ABI encoding, or Ethereum protocol rules are required.
 
-Because protocol routing metadata is consumed entirely by the router before delegated execution, delegated facets observe calldata identical to that of conventional contract calls.
-
-Accordingly, existing Solidity code may be reused inside facets without modification.
+Because protocol routing metadata is consumed entirely by the router before delegated execution, delegated facets observe calldata identical to that of conventional contract calls. Accordingly, existing Solidity code may be reused inside facets without modification.
 
 Selector-centric modular proxy implementations are not automatically compliant with this standard because they employ selector-based protocol routing rather than routing-index-based dispatch.
 
@@ -430,45 +416,25 @@ Both routing models may coexist within the Ethereum ecosystem.
 
 **Simplicity**: Protocol developers organize code around facets, not selectors. Index-based routing reflects this naturally.
 
-**Collision Safety**: Attachment of facet identity to index allows multiple functions with identical selectors scattered across multiple facets, eliminating selector collision risk.
+**Collision Safety**: Protocol functions do not require globally unique selectors across facets, eliminating selector collision risk.
 
 ## Routing Index Width
 
-This specification standardizes an 8-bit routing index.
+This specification standardizes an 8-bit routing index. One-byte routing metadata minimizes calldata overhead while supporting up to 256 routing entries.
 
-One-byte routing metadata minimizes calldata overhead while supporting up to 256 routing entries.
-
-The standardized routing width simplifies interoperability between compliant implementations.
-
-Protocols requiring larger routing tables may extend the routing index width or compose additional routing mechanisms.
-
-Such extensions remain outside the scope of this specification provided they preserve the routing semantics defined herein.
+The standardized routing width simplifies interoperability between compliant implementations. Protocols requiring larger routing tables may extend the routing index width or compose additional routing mechanisms. Such extensions remain outside the scope of this specification provided they preserve the routing semantics defined herein.
 
 ## Storage Independence
 
-Routing semantics are intentionally independent from storage layout.
+Routing semantics are intentionally independent from storage layout. Storage organization represents an implementation concern rather than an interoperability concern.
 
-Storage organization represents an implementation concern rather than an interoperability concern.
-
-Consequently, this standard neither requires nor discourages any particular storage management methodology.
-
-Future storage standards remain fully compatible with this routing architecture.
+Consequently, this standard neither requires nor discourages any particular storage management methodology. Future storage standards remain fully compatible with this routing architecture.
 
 ## Separation of Routing and Compatibility
 
-Function selectors serve two purposes in selector-centric architectures:
+Function selectors serve two purposes in selector-centric architectures: routing (identifying which facet should execute) and compatibility (identifying which standardized interface is being invoked). These evolve under different constraints. Routing benefits from facet-level abstraction. Compatibility requires backward-compatible selector tables.
 
-1. **Routing**: Identifying which facet should execute
-2. **Compatibility**: Identifying which Ethereum interface is being invoked
-
-These evolve under different constraints. Routing benefits from facet-level abstraction. Compatibility requires backward-compatible selector tables.
-
-This standard separates these concerns:
-
-- **Protocol routing**: Facet indices (implementation-focused)
-- **Compatibility routing**: Function selectors (interoperability-focused)
-
-Each mechanism can evolve independently.
+This standard separates these concerns: protocol routing uses facet indices (implementation-focused), and compatibility routing uses function selectors for Ethereum interfaces (interoperability-focused). Each mechanism can evolve independently.
 
 ## Relationship to ERC-2535
 

@@ -1,15 +1,17 @@
 # Cento Proxy
 
-> **A modular proxy pattern for the Ethereum Virtual Machine that combines facet indices for protocol routing with selector-based routing for compatibility standards, reducing deployment and upgrade costs while preserving full interoperability with existing Ethereum tooling.**
+> **A modular proxy pattern for Ethereum Virtual Machine that combines facet indices for protocol routing with selector-based routing for compatibility standards, reducing deployment and upgrade costs while preserving full interoperability with existing Ethereum tooling.**
 
 ## Overview
 
-Cento Proxy is a reference implementation of an alternative modular upgrade pattern. Rather than routing all functions through selectors (as in ERC-2535), Cento separates two distinct concerns:
+Cento Proxy separates **protocol routing** from **interface compatibility routing**:
 
-- **Protocol routing**: Compact facet indices for protocol-specific functions
-- **Compatibility routing**: Selector-based routing for standard interfaces (ERC-165, ERC-173, etc.)
+- **Protocol routing** uses compact facet indices (one byte per facet) for implementation modules
+- **Interface compatibility routing** uses standard function selectors for Ethereum standards
 
 This separation eliminates selector management as a permanent maintenance cost while ensuring existing Ethereum infrastructure continues functioning without modification. The result is a system with significantly lower deployment and upgrade costs, simpler routing metadata, and native compatibility with the Ethereum ecosystem.
+
+The reference implementation is complete and deployable: fork it and deploy immediately. Includes comprehensive examples for deployment, atomic upgrades, storage migration, and operational management. No selector boilerplate required.
 
 ---
 
@@ -97,7 +99,7 @@ The 11-gas overhead for protocol-to-protocol calls is a deliberate tradeoff: it 
 
 **Routing & Architecture**
 - Hybrid routing model combining compact facet indices and function selectors
-- Index-based routing for protocol functions; selector-based routing for compatibility standards
+- Index-based routing for protocol functions; selector-based routing support for compatibility standards
 - Immutable router contract (no governance or upgrade surface)
 - Up to 256 facets per protocol
 
@@ -121,31 +123,6 @@ The 11-gas overhead for protocol-to-protocol calls is a deliberate tradeoff: it 
 - ERC-7201 namespaced storage for safe upgrades
 - Deterministic storage locations across protocol versions
 - Migration examples
-
----
-
-# Repository Structure
-
-```text
-.
-├── interaction/
-├── lib/
-├── logs/
-├── script/
-├── src/
-│   ├── cento/
-│   │   ├── facets/
-│   │   ├── interfaces/
-│   │   ├── libraries/
-│   │   ├── migrators/
-│   │   ├── structs/
-│   │   └── types/
-│   └── protocol/
-├── test/
-└── README.md
-```
-
-The repository contains both the complete reference implementation of Cento Proxy and example protocols demonstrating deployment, upgrades, benchmarking and storage migration.
 
 ---
 
@@ -256,6 +233,44 @@ release forge test \
     -vv \
 | grep "\[Gas\]"
 ```
+
+Generate and visualize depolyment costs (for Cento and Diamond):
+
+> Start a local Anvil node (in second terminal):
+>
+> ```bash
+> anvil
+> ```
+> 
+> Run benchmark-specific deployment scripts for Cento:
+>
+> ```bash
+> release forge script test/gas/cento/deployment/_DeployCentoGas.s.sol \
+>     --rpc-url http://127.0.0.1:8545 \
+>     --broadcast \
+>     --private-key <PRIVATE_KEY> \
+>     -vvvvv
+> ```
+>
+> And Diamond:
+>
+> ```bash
+> release forge test/gas/cento/deployment/_DeployDiamondGas.s.sol \
+>     --rpc-url http://127.0.0.1:8545 \
+>     --broadcast \
+>     --private-key <PRIVATE_KEY> \
+>     -vvvvv
+> ```
+>
+> Now you can execute the deployment benchmark test:
+>
+> ```bash
+> release forge test \
+>     --match-path "test/gas/cento/deployment/**" \
+>     --isolate \
+>     -vv \
+> | grep "\[Gas\]"
+> ```
 
 Generate gas snapshots.
 
@@ -428,7 +443,7 @@ In selector-centric modular architectures, selectors additionally serve as facet
 This pattern treats protocol routing and interface compatibility as independent concerns:
 
 - **Protocol routing** uses compact facet indices (one byte per facet)
-- **Interface compatibility** uses standard function selectors
+- **Interface compatibility** uses standard function selectors for Ethereum interfaces
 
 Result: facets become first-class routing entities, selector tables remain focused on interoperability, and routing metadata scales with module count rather than function count.
 
@@ -442,7 +457,7 @@ Cento employs a hybrid routing architecture:
 - Updating entire facet requires modifying single routing entry
 
 **Compatibility Routing**: Standard function selectors
-- Compatibility standards (ERC-165, ERC-173) use native selector routing
+- Compatibility standards (like ERC-165, ERC-173, and others) use native selector routing
 - Existing wallets, explorers, and infrastructure work without modification
 - Seamless integration with all Ethereum tooling
 
@@ -499,38 +514,52 @@ Protocol-to-protocol calls append a single routing byte to calldata, increasing 
 - **43% reduction in protocol deployment costs**
 - **Elimination of selector management** from protocol maintenance
 
-For most protocols, upgrade frequency far outweighs call frequency, making this tradeoff strongly favorable.
+For most protocols, upgrade frequency far outweighs call frequency, making this tradeoff strongly favorable. Plus, regular calls where calldata is formed off-chain are cheaper.
 
 ### Secondary Constraints
 
 - **Routing table capacity**: 256 facets maximum (sufficient for virtually all protocol architectures)
 - **Protocol functions**: Require generated routing wrappers (minimal overhead, handled by SDK)
 
-### Advantages
+### Operational Advantages
 
 - Eliminates selector management and collision risk
 - Dramatically lower deployment and upgrade costs
+- Smaller audit and formal verification surface
 - Simpler deployment and upgradability for facet management part
 - Batch calls benefit from per-facet slot warmups compared to per-selector ones
 - Facets may implement custom `receive()` functions
 
 ---
 
+## Production Readiness
+
+Cento includes complete operational scaffolding:
+
+- **Deployment scripts** with configuration management
+- **Upgrade examples** demonstrating atomic facet updates and storage migration
+- **Operational tools** (GetFacets, TransferOwnership, CastAdapter) for protocol management
+- **Gas benchmarks** validating efficiency claims (first comprehensive benchmarking of both Cento and Diamond ([diamond-2](https://github.com/mudgen/diamond-2-hardhat)))
+- **100% test coverage** ensuring production reliability
+
+Developers can fork the reference implementation and deploy a complete modular protocol 
+on day one. No selector management boilerplate. No integration decisions to make.
+
 ## Positioning Relative to ERC-2535 (Diamond Standard)
 
 ERC-2535 pioneered modular smart contract architecture through selector-based routing. Cento preserves this modularity while introducing a fundamental architectural shift:
 
-**Diamond Standard approach**: All functions route through selectors
+**Diamond Standard approach**: Function selectors identify facet
 - Every function requires selector mapping
 - Upgrade cost scales with number of functions modified
 - Selector management is permanent operational overhead
 
-**Cento approach**: Separate protocol routing from compatibility routing
+**Cento approach**: Routing index identifies facet
 - Protocol functions use facet indices (metadata scales with facet count)
 - Compatibility standards continue using selectors (no change to existing interfaces)
 - Selector management eliminated from protocol development
 
-This is not a replacement for Diamond; it is an **alternative design point** optimizing for upgrade efficiency and operational simplicity. Projects prioritizing maximum single-call performance or already heavily invested in Diamond may prefer to remain on that path. Projects prioritizing low upgrade costs and minimal management overhead should evaluate Cento.
+This is not a replacement for Diamond; it is an **alternative design point** optimizing for upgrade efficiency and operational simplicity. Projects heavily invested in Diamond may prefer to remain on that path. Projects prioritizing low upgrade costs and minimal management overhead should evaluate Cento.
 
 ---
 
@@ -557,7 +586,7 @@ The reference implementation includes native support for:
 - **ERC-165**: Interface introspection
 - **ERC-173**: Ownership pattern
 
-Additional standards (ERC-20, ERC-721, ERC-1155, etc.) can be implemented as standard compatibility facets, operating through conventional selector-based routing. These will be added in the routing code, locking implementation to specific indices. Be sure to add all standards that you plan to support upon deployment of Cento Router.
+Additional standards (ERC-20, ERC-721, ERC-1155, etc.) can be implemented as standard compatibility facets, operating through conventional selector-based routing. These will be added in the routing code, locking implementation to specific indices. Plan your ERC support at deployment time.
 
 ---
 
@@ -586,7 +615,7 @@ Issues, discussions, and pull requests are welcome.
 
 ## Roadmap
 
-The current reference implementation is considered feature complete and production-ready.
+The current reference implementation is considered feature complete for the proposed ERC standard.
 
 **Immediate priorities:**
 - ERC standardization process
