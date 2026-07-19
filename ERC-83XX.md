@@ -1,7 +1,7 @@
 ---
 eip: <to be assigned>
-title: "Cento Proxy: Modular Proxy Standard with Index-Based Routing"
-description: A modular proxy architecture that uses compact facet indices for protocol routing while preserving function selectors for Ethereum interface compatibility.
+title: Cento Proxy - Index-Based Multi-Facet Proxy
+description: A modular proxy architecture that uses compact facet indices for protocol routing while preserving function selectors for compatibility.
 author: Artem Buchikhin (@Arhemius)
 discussions-to: https://ethereum-magicians.org/t/<discussion-link>
 status: Draft
@@ -13,7 +13,7 @@ requires: 165, 173
 
 # Abstract
 
-This standard defines a modular proxy architecture for the Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility routing**.
+This standard defines a modular proxy architecture for Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility routing**.
 
 Unlike existing modular proxy standards, this specification identifies protocol facets using compact routing indices appended to calldata, while preserving conventional function selectors exclusively for compatibility with Ethereum standards and external tooling.
 
@@ -23,7 +23,7 @@ The specification defines the routing model, calldata format, atomic upgrade sem
 
 # Motivation
 
-The Ethereum ecosystem has demonstrated strong demand for modular smart contract architectures. ERC-2535 introduced selector-based modular routing, enabling protocols to distribute logic across multiple facet contracts while maintaining a single external address. This approach has proven valuable in production deployments.
+The Ethereum ecosystem has demonstrated strong demand for modular smart contract architectures. [ERC-2535](./erc-2535.md) introduced selector-based modular routing, enabling protocols to distribute logic across multiple facet contracts while maintaining a single external address. This approach has proven valuable in production deployments.
 
 However, selector-centric routing introduces persistent engineering challenges:
 
@@ -73,7 +73,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 **Protocol Function**: A function invoked through routing-index-based dispatch.
 
-**Compatibility Function**: A function exposed for interoperability with Ethereum standards (e.g., ERC-165, ERC-173) or external tooling. Compatibility functions use conventional function selector dispatch.
+**Compatibility Function**: A function exposed for interoperability with Ethereum standards (e.g., [ERC-165](./erc-165.md), [ERC-173](./erc-173.md)) or external tooling. Compatibility functions use conventional function selector dispatch.
 
 **Atomic Update**: A single transaction modifying the routing table (installing, replacing, or removing facets) with all-or-nothing semantics.
 
@@ -159,7 +159,12 @@ The delegated facet executes within the storage context of the router. The route
 
 ### Fallback Function Example Implementation
 
+The following is an educational example demonstrating the routing dispatch logic. A production-ready implementation is available in the [Reference Implementation](#reference-implementation) section.
+
 ```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.29;
+
 fallback() external payable {
     assembly {
         let cds := calldatasize()
@@ -176,7 +181,8 @@ fallback() external payable {
             case 0x01ffc9a7 { idx := ERC165_INDEX }  // ERC-165
             case 0x8da5cb5b { idx := ERC173_INDEX }  // ERC-173: owner()
             case 0xf2fde38b { idx := ERC173_INDEX }  // ERC-173: transferOwnership()
-            default { revert(0, 0) }
+            // Non-uniform calldata size may also be supported
+            default { idx := byte(0, calldataload(sub(cds, 1))) }
         }
             
         // Unified dispatch
@@ -273,6 +279,9 @@ The IFacetManager interface standardizes how facet updates are performed. All fa
 Implementations MUST emit an AtomicUpdate event for every atomic update. This event provides an immutable, queryable record of all routing table modifications, enabling indexers, governance systems, and auditing tools to track protocol evolution.
 
 ```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.29;
+
 interface IFacetManager {
     /// @notice Atomically updates the protocol configuration.
     /// @param setF Facets to install, replace, or remove.
@@ -327,6 +336,9 @@ The observability functions provide multiple views into the routing table:
 These functions operate in `view` mode and impose no state changes, making them safe for external tooling and governance systems to call repeatedly.
 
 ```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.29;
+
 interface IObservability {
 
     /// @notice Returns all installed facet addresses.
@@ -360,9 +372,8 @@ ERC-165 interface detection allows external systems to query which standards a c
 
 Routers MUST report the following interface identifiers:
 
-- `0x01ffc9a7` (ERC-165 itself)
-- `0x8da5cb5b` (ERC-173 owner)
-- `0xf2fde38b` (ERC-173 transferOwnership)
+- `0x01ffc9a7` (ERC-165)
+- `0x7f5828d0` (ERC-173)
 - `0x5378f98e` (IFacetManager)
 - `0x1c60a259` (IObservability)
 
@@ -373,6 +384,9 @@ Additional interface identifiers MUST be reported if the corresponding facet is 
 Routers MUST implement ERC-173 ownership:
 
 ```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.29;
+
 interface IERC173 {
     function owner() external view returns (address);
     function transferOwnership(address newOwner) external;
@@ -426,7 +440,7 @@ One-byte routing metadata minimizes calldata overhead while supporting up to 256
 
 The standardized routing width simplifies interoperability between compliant implementations.
 
-Protocols requiring larger routing tables MAY extend the routing index width or compose additional routing mechanisms.
+Protocols requiring larger routing tables may extend the routing index width or compose additional routing mechanisms.
 
 Such extensions remain outside the scope of this specification provided they preserve the routing semantics defined herein.
 
@@ -503,13 +517,13 @@ This specification standardizes 8-bit routing indices (0–255). Why 8 bits?
 
 ## Immutable Router
 
-The router contract SHOULD be immutable after deployment. This:
+The router contract should be immutable after deployment. This:
 
 - Reduces attack surface (no router logic upgrades)
 - Clarifies responsibility (facets contain logic)
 - Improves auditing (fixed routing algorithm)
 
-Implementations MAY include router upgrades if governance permits, but SHOULD avoid this.
+Implementations MAY include router upgrades if governance permits, but should avoid this.
 
 # Security Considerations
 
@@ -533,18 +547,35 @@ All proxy architectures using `DELEGATECALL` face shared risks:
 
 Mitigation:
 
-- Use namespaced storage (e.g., ERC-7201) to isolate facet state
+- Use namespaced storage (e.g., [ERC-7201](./erc-7201.md)) to isolate facet state
 - Audit all facets before installation
 - Implement upgrade governance requiring multi-step verification
 
+## Facet Validation
+
+Facets should be smart contracts with executable code. Routers should reject the following as facet installations:
+
+1. **EOAs (Externally Owned Accounts)**: Facets must not be externally owned addresses. Routing to an EOA will silently succeed without executing any code, creating undefined protocol behavior.
+
+2. **Empty contracts**: Facets must not be contracts with no code. This includes newly created contracts or contracts that have self-destructed.
+
+3. **EIP-7702 delegated EOAs**: [EIP-7702](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7702.md) introduces a mechanism allowing EOAs to delegate code execution. Routers should reject EIP-7702 delegated EOAs as facets because they introduce a secondary authorization path outside the router's control. An EOA could change its delegation at any time, fundamentally altering protocol behavior without routing table modification. This is a critical security boundary violation.
+
+Implementations should perform bytecode validation before installing a facet. The reference implementation detects EIP-7702 delegations by checking for the EIP-7702 magic prefix (`0xef0100`) in the first three bytes of the account's code.
+
+Failure to validate facets can result in:
+- Silent routing failures (EOA delegation produces no revert, no execution)
+- Unauthorized protocol modifications (EIP-7702 EOA changes delegation)
+- Undefined behavior and security breaches
+
 ## Routing Validation
 
-Routers MUST validate routing metadata before delegation:
+Routers must validate routing metadata before delegation:
 
-1. **Non-zero calldata**: Empty calldata MUST NOT reach fallback routing. Use `receive()`.
-2. **Valid indices**: Routing indices MUST reference installed facets.
-3. **No zero addresses**: Routing entries MUST NOT target address(0).
-4. **No self-routing**: Routers MUST NOT delegate to themselves.
+1. **Non-zero calldata**: Empty calldata must not reach fallback routing. Use `receive()`.
+2. **Valid indices**: Routing indices must reference installed facets.
+3. **No zero addresses**: Routing entries must not target address(0).
+4. **No self-routing**: Routers must not delegate to themselves.
 
 Failure to validate can result in:
 - Gas exhaustion (empty calldata calldata copy overflow)
@@ -553,26 +584,26 @@ Failure to validate can result in:
 
 ## Selector Collisions
 
-While protocol functions do not require unique selectors, compatibility functions MUST:
+While protocol functions do not require unique selectors, compatibility functions must:
 
 - ERC-165: `supportsInterface(bytes4)` — `0x01ffc9a7`
 - ERC-173: `owner()` — `0x8da5cb5b`
 - ERC-173: `transferOwnership(address)` — `0xf2fde38b`
 
-Routers MUST dispatch these selectors to the appropriate facets. Custom compatibility facets MUST avoid colliding with these standard selectors.
+Routers must dispatch these selectors to the appropriate facets. Custom compatibility facets must avoid colliding with these standard selectors.
 
 ## Storage Migration
 
 If used, storage migrations introduce upgrade risks:
 
-- Migrations MUST preserve protocol invariants
-- Migrations SHOULD be independently audited
-- If migration fails, the entire upgrade MUST revert
-- Multi-step migrations SHOULD employ careful sequencing to prevent partial state corruption
+- Migrations must preserve protocol invariants
+- Migrations should be independently audited
+- If migration fails, the entire upgrade must revert
+- Multi-step migrations should employ careful sequencing to prevent partial state corruption
 
 ## Facet Upgrades
 
-Replacing a facet changes protocol behavior. Implementations SHOULD:
+Replacing a facet changes protocol behavior. Implementations should:
 
 - Verify new facets are audited before installation
 - Use governance time-locks before activation
@@ -585,19 +616,19 @@ Protocol routing removes routing metadata from calldata before delegation.
 
 Attempting to strip routing metadata from empty calldata may underflow the computed calldata length, causing `CALLDATACOPY` to attempt copying an effectively unbounded memory region and exhausting all available gas.
 
-Compliant implementations MUST prevent fallback routing from executing on empty calldata.
+Compliant implementations must prevent fallback routing from executing on empty calldata.
 
-Implementations SHOULD provide a `receive()` function that consumes empty calldata before fallback routing logic is reached.
+Implementations should provide a `receive()` function that consumes empty calldata before fallback routing logic is reached.
 
 Equivalent protection mechanisms are also acceptable.
 
 ## Routing Metadata Validation
 
-Routers MUST validate routing metadata before attempting delegated execution.
+Routers must validate routing metadata before attempting delegated execution.
 
-Malformed routing metadata MUST cause the transaction to revert.
+Malformed routing metadata must cause the transaction to revert.
 
-Implementations SHOULD minimize the amount of work performed before routing metadata validation.
+Implementations should minimize the amount of work performed before routing metadata validation.
 
 # Reference Implementation
 
