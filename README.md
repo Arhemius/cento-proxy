@@ -15,26 +15,79 @@ The reference implementation is complete and deployable: fork it and deploy imme
 
 ---
 
+## Requirements
+
+- Solidity **^0.8.36**
+- Foundry **^1.7.1**
+- forge-std **^1.16.2**
+- lcov *(optional, for HTML coverage reports)*
+
 ## Quick Start
 
-**Build**
+**Installation**
+
+> Clone the repository:
+> 
+> ```bash
+> git clone git@github.com:Arhemius/cento-proxy.git
+> cd cento-proxy
+> ```
+> 
+> Install Foundry (if not already installed):
+> 
+> ```bash
+> curl -L https://foundry.paradigm.xyz | bash
+> ```
+> 
+> Restart your shell:
+> 
+> ```bash
+> source ~/.bashrc
+> # or
+> source ~/.zshrc
+> ```
+> 
+> Install Foundry v1.7.1 or higher:
+> 
+> ```bash
+> foundryup --install 1.7.1
+> ```
+> 
+> Install project dependencies:
+> 
+> ```bash
+> forge install foundry-rs/forge-std
+> ```
+
+**Build and Test**
+
 ```bash
 forge build
-```
-
-**Test**
-```bash
 forge test
 ```
 
 **Benchmarks**
+
+Run the complete benchmark suite:
+
 ```bash
-release forge test --match-path "test/gas/**" --gas-report --isolate
+release forge test --match-path "test/gas/**" --isolate -vv | grep "\[Gas\]"
 ```
 
+> Note: `release` stands for `FOUNDRY_PROFILE=release`. To use alias, add to your .bashrc or .zshrc:
+>
+> ```bash
+> release() {
+>     FOUNDRY_PROFILE=release "$@"
+> }
+> ```
+
 **Documentation**
+
+Launch the local documentation server:
+
 ```bash
-forge doc
+forge doc --serve --port 3000
 ```
 
 See [Development Workflow](#development-workflow) for complete setup and testing instructions.
@@ -128,13 +181,6 @@ The 11-gas overhead for protocol-to-protocol calls is a deliberate tradeoff: it 
 
 # Development Workflow
 
-## Requirements
-
-- Solidity **^0.8.36**
-- Foundry **^1.7.1**
-- forge-std **^1.16.2**
-- lcov *(optional, for HTML coverage reports)*
-
 ---
 
 ## Build
@@ -172,14 +218,6 @@ Run the release configuration.
 ```bash
 release forge test
 ```
-
-> Note: `release` stands for `FOUNDRY_PROFILE=release`. To use alias, add to your bash.rc:
->
-> ```bash
-> release() {
->     FOUNDRY_PROFILE=release "$@"
-> }
-> ```
 
 Run an individual test module.
 
@@ -313,8 +351,7 @@ forge coverage
 Generate an HTML coverage report (for installation see this [**tutorial**](https://rareskills.io/post/foundry-forge-coverage)).
 
 ```bash
-forge coverage --report lcov
-genhtml lcov.info \
+forge coverage --report lcov && genhtml lcov.info \
     --branch-coverage \
     --output-dir coverage
 ```
@@ -391,7 +428,7 @@ Read protocol ownership.
 ```bash
 forge script script/operations/v1/GetOwner.s.sol \
     --rpc-url http://127.0.0.1:8545 \
-    --debug
+    --vvvvv
 ```
 
 ---
@@ -428,9 +465,9 @@ cast call <CAST_ADAPTER> \
 
 ---
 
-## Architecture
+# Architecture
 
-### Design Philosophy
+## Design Philosophy
 
 Function selectors were designed to identify externally callable entry points and enable ABI encoding/decoding. They succeed at this purpose.
 
@@ -447,7 +484,7 @@ This pattern treats protocol routing and interface compatibility as independent 
 
 Result: facets become first-class routing entities, selector tables remain focused on interoperability, and routing metadata scales with module count rather than function count.
 
-### Routing Model
+## Routing Model
 
 Cento employs a hybrid routing architecture:
 
@@ -461,32 +498,67 @@ Cento employs a hybrid routing architecture:
 - Existing wallets, explorers, and infrastructure work without modification
 - Seamless integration with all Ethereum tooling
 
-### System Components
+## System Components
 
-**Router Contract**
-- Minimal immutable proxy handling routing dispatch
-- Responsibilities: decode routing metadata, locate facet, execute via `delegatecall`
-- Business logic never resides in the router
+The reference implementation consists of a minimal immutable router, three core facets, four standard interfaces, and two supporting libraries. Together they provide a complete foundation for building modular protocols using index-based facet routing.
 
-**Facets**
-- Isolated modules responsible for single protocol concerns
-- Common facets: ownership, administration, token logic, governance, observability
-- Protocols compose facets up to routing table capacity (256 facets)
+### Cento Router
 
-**Storage Model**
-- ERC-7201 namespaced storage for deterministic location assignment
-- All shared state accessed through `LibCento`
-- Safe upgrades with facet isolation
-- Optional storage migration framework
+The `CentoRouter` is an immutable proxy responsible exclusively for execution dispatch.
 
-**Atomic Updates**
-- Single transaction can install, replace, or remove facets
-- Atomic interface registration and storage migrations
-- All-or-nothing semantics: every modification succeeds or entire update reverts
+- Decodes routing metadata appended to calldata
+- Resolves the target facet through the routing table
+- Strips routing metadata before `delegatecall`
+- Contains no protocol business logic
+
+### Core Facets
+
+The reference implementation provides three reusable facets covering the essential protocol lifecycle.
+
+**FacetManager**
+- Atomic installation, replacement, and removal of facets
+- Atomic interface registration and deregistration
+- Optional storage migration execution during upgrades
+- Complete protocol evolution through a single transaction
+
+**Ownership**
+- ERC-173 ownership management
+- Administrative access control
+- Ownership transfer operations
 
 **Observability**
-- Inspection utilities for installed facets, routing entries, and supported interfaces
-- Protocol administration queries independent from routing logic
+- Inspection of installed facets and routing table state
+- Supported interface discovery
+- DevOps-oriented protocol introspection
+
+### Standard Interfaces
+
+The reference implementation exposes four interfaces defining protocol administration and interoperability.
+
+- **IFacetManager** – facet lifecycle management
+- **IObservability** – protocol introspection
+- **IERC173** – ERC-173 ownership operations
+- **IERC165** – ERC-165 interface compatibility
+
+### Supporting Libraries
+
+**LibCento**
+- Implements the ERC-7201 storage model
+- Defines the shared `CentoStorage` layout
+- Defines the `Facet` metadata structure
+- Provides the core protocol management primitives
+
+**LibBitmap**
+- Provides the `bitmap256` value type
+- Efficiently tracks routing table occupancy
+- Constant-size storage representation with bitmap operations
+
+### Development Utilities
+
+The repository includes:
+
+- `LibDebug` – compile-time debug switch removed from production builds (works with `release` mode configurations).
+- `CentoMigrator` – template for implementing protocol-specific storage migrations executed through `IFacetManager.atomicUpdate()`.
 
 ---
 
@@ -502,37 +574,7 @@ Raw benchmark scripts are available in `test/gas/`. Running the benchmark suite 
 
 ---
 
-## Design Tradeoffs
-
-Every engineering design makes intentional tradeoffs. Cento's design prioritizes upgrade efficiency and operational simplicity over maximizing single-call routing performance.
-
-### Primary Tradeoff: Routing Performance vs. Upgrade Cost
-
-Protocol-to-protocol calls append a single routing byte to calldata, increasing routing cost by approximately **11 gas** (0.2%) compared to Diamond. This is the deliberate design tradeoff that enables:
-
-- **77–87% reduction in upgrade costs** for multi-facet operations
-- **43% reduction in protocol deployment costs**
-- **Elimination of selector management** from protocol maintenance
-
-For most protocols, upgrade frequency far outweighs call frequency, making this tradeoff strongly favorable. Plus, regular calls where calldata is formed off-chain are cheaper.
-
-### Secondary Constraints
-
-- **Routing table capacity**: 256 facets maximum (sufficient for virtually all protocol architectures)
-- **Protocol functions**: Require generated routing wrappers (minimal overhead, handled by SDK)
-
-### Operational Advantages
-
-- Eliminates selector management and collision risk
-- Dramatically lower deployment and upgrade costs
-- Smaller audit and formal verification surface
-- Simpler deployment and upgradability for facet management part
-- Batch calls benefit from per-facet slot warmups compared to per-selector ones
-- Facets may implement custom `receive()` functions
-
----
-
-## Production Readiness
+# Production Readiness
 
 Cento includes complete operational scaffolding:
 
@@ -545,7 +587,39 @@ Cento includes complete operational scaffolding:
 Developers can fork the reference implementation and deploy a complete modular protocol 
 on day one. No selector management boilerplate. No integration decisions to make.
 
-## Positioning Relative to ERC-2535 (Diamond Standard)
+---
+
+# Design Tradeoffs
+
+Every engineering design makes intentional tradeoffs. Cento's design prioritizes upgrade efficiency and operational simplicity over maximizing single-call routing performance.
+
+## Primary Tradeoff: Routing Performance vs. Upgrade Cost
+
+This concerns only protocol-to-protocol calls where append of a single routing byte to calldata happens on-chain, increasing routing cost by approximately **11 gas** (0.2%) compared to Diamond. This is the deliberate design tradeoff that enables:
+
+- **77–87% reduction in upgrade costs** for multi-facet operations
+- **43% reduction in protocol deployment costs**
+- **Elimination of selector management** from protocol maintenance
+
+For most protocols, upgrade frequency far outweighs call frequency, making this tradeoff strongly favorable. Plus, regular calls where calldata is formed off-chain are cheaper by **25 gas** (0.5%).
+
+## Secondary Constraints
+
+- **Routing table capacity**: 256 facets maximum (sufficient for virtually all protocol architectures)
+- **Protocol functions**: Require generated routing wrappers in development (minimal overhead, handled by SDK)
+
+## Operational Advantages
+
+- Eliminates selector management and collision risk
+- Dramatically lower deployment and upgrade costs
+- Smaller audit and formal verification surface
+- Simpler deployment and upgradability for facet management part
+- Batch calls benefit from per-facet slot warmups compared to per-selector ones
+- Facets may implement custom `receive()` functions
+
+---
+
+# Positioning Relative to ERC-2535 (Diamond Standard)
 
 ERC-2535 pioneered modular smart contract architecture through selector-based routing. Cento preserves this modularity while introducing a fundamental architectural shift:
 
@@ -559,7 +633,7 @@ ERC-2535 pioneered modular smart contract architecture through selector-based ro
 - Compatibility standards continue using selectors (no change to existing interfaces)
 - Selector management eliminated from protocol development
 
-This is not a replacement for Diamond; it is an **alternative design point** optimizing for upgrade efficiency and operational simplicity. Projects heavily invested in Diamond may prefer to remain on that path. Projects prioritizing low upgrade costs and minimal management overhead should evaluate Cento.
+This pattern does not supersede ERC-2535; it is an **alternative design point** optimizing for upgrade efficiency and operational simplicity. Projects heavily invested in Diamond may prefer to remain on that path. Projects prioritizing low upgrade costs and minimal management overhead should evaluate Cento.
 
 ---
 
@@ -579,7 +653,7 @@ forge doc --serve --port 3000
 
 ---
 
-## Compatibility Standards
+# Compatibility Standards
 
 The reference implementation includes native support for:
 
@@ -590,7 +664,7 @@ Additional standards (ERC-20, ERC-721, ERC-1155, etc.) can be implemented as sta
 
 ---
 
-## ERC Proposal
+# ERC Proposal
 
 Cento Proxy is proposed as an Ethereum Request for Comments (ERC) standard. The formal specification draft is available in the `ERC-83XX.md` file.
 
@@ -598,7 +672,7 @@ The ERC submission process follows the standardization pathway for core Ethereum
 
 ---
 
-## Contributing
+# Contributing
 
 Issues, discussions, and pull requests are welcome.
 
@@ -613,7 +687,7 @@ Issues, discussions, and pull requests are welcome.
 
 ---
 
-## Roadmap
+# Roadmap
 
 The current reference implementation is considered feature complete for the proposed ERC standard.
 
@@ -635,11 +709,11 @@ The current reference implementation is considered feature complete for the prop
 
 ---
 
-## Get Support
+# Get Support
 
 If you have questions or would like to discuss Cento - [email me](mailto:artembuchihin@gmail.com).
 
-## Author
+# Author
 
 This example implementation was written by Artem Buchikhin.
 

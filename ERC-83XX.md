@@ -23,22 +23,35 @@ The specification defines the routing model, calldata format, atomic upgrade sem
 
 # Motivation
 
-The Ethereum ecosystem has demonstrated strong demand for modular smart contract architectures. [ERC-2535](./erc-2535.md) introduced selector-based modular routing, enabling protocols to distribute logic across multiple facet contracts while maintaining a single external address. This approach has proven valuable in production deployments.
+The Ethereum ecosystem has demonstrated strong demand for modular smart contract architectures. [ERC-2535](./erc-2535.md) introduced selector-based modular routing, enabling protocols to distribute logic across multiple facet contracts while maintaining a single external address. This approach has proven valuable in production deployments and established modular proxies as a practical foundation for complex upgradeable protocols.
 
-However, selector-centric routing introduces persistent engineering challenges:
+In selector-based routing, function selectors simultaneously identify externally observable behavior and determine which implementation module executes that behavior. While practical, this coupling assigns two independent responsibilities to the same identifier.
 
-1. **Routing metadata scales with function count**: As protocols evolve, selector tables grow proportionally with externally callable functions, not module count. Each upgrade requires selector management.
+These responsibilities evolve under different constraints.
 
-2. **Selector collision risk**: Developers must prevent unintended selector collisions between facets. While collisions are rare, they represent an ongoing concern during protocol composition and integration.
+Function selectors exist to provide compatibility between independently developed software, including wallets, block explorers, SDKs, standards, and external smart contracts.
 
-3. **Misaligned abstractions**: Function selectors identify externally observable behavior, while facets represent implementation modules. Conflating these concerns constrains both.
+Facet identities exist solely to determine which implementation module executes protocol logic.
 
-4. **Upgrade complexity**: Multi-facet atomic upgrades require managing selector state for potentially hundreds of functions.
+As protocols become larger and more modular, using function selectors as routing identifiers causes routing metadata to scale with exported protocol functions rather than implementation modules. Consequently, protocol evolution becomes increasingly coupled to selector management.
 
-This standard approaches modular upgrades from a different architectural perspective by separating these two independent concerns:
+This architectural coupling introduces several recurring engineering challenges:
 
-- **Protocol routing**: Identifies which implementation module handles execution
-- **Compatibility routing**: Preserves selector-based dispatch for standardized Ethereum interfaces
+1. **Routing metadata scales with function count**: As protocols evolve, selector tables grow proportionally with externally callable functions rather than module count. Every upgrade requires selector management regardless of whether protocol organization changes.
+
+2. **Selector collision concerns**: Protocol developers must ensure that independently developed facets do not unintentionally expose identical function selectors. While selector collisions are uncommon, avoiding them remains an ongoing consideration during protocol composition, library development, and integration.
+
+3. **Misaligned abstractions**: Function selectors identify externally observable behavior, whereas facets represent implementation modules. Coupling these distinct concerns constrains routing to operate at the granularity of functions rather than protocol modules.
+
+4. **Upgrade complexity**: Multi-facet upgrades require modifying routing metadata for potentially hundreds of individual selectors even when the protocol evolves at the level of implementation modules.
+
+This standard approaches modular routing from a different architectural perspective.
+
+Instead of using function selectors as routing identifiers, it introduces **index-based facet routing**, where implementation modules are identified by routing indices appended to calldata and removed before delegated execution.
+
+Function selectors retain their original purpose as compatibility identifiers for standardized Ethereum interfaces, while routing indices become dedicated protocol routing identifiers.
+
+By separating protocol routing from interface compatibility, routing metadata naturally scales with implementation modules rather than exported functions, enabling facet-oriented protocol composition while preserving compatibility with existing Ethereum standards and tooling.
 
 ## Architectural Innovation
 
@@ -231,7 +244,7 @@ Routers MUST initialize with three core facets installed at standard indices:
 
 - Index 0: IFacetManager (facet management)
 - Index 1: ERC-173 Ownership (owner, transferOwnership)
-- Index 2: ERC-165 Observability (interface detection and facet introspection)
+- Index 2: ERC-165 Observability, IObservability (interface detection and facet introspection)
 
 Initial deployment MAY emit an AtomicUpdate event documenting these core facets, but this is OPTIONAL.
 
@@ -426,7 +439,7 @@ The standardized routing width simplifies interoperability between compliant imp
 
 ## Storage Independence
 
-Routing semantics are intentionally independent from storage layout. Storage organization represents an implementation concern rather than an interoperability concern.
+Routing semantics are intentionally independent from storage layout. Storage organization represents an implementation concern rather than an interoperability one.
 
 Consequently, this standard neither requires nor discourages any particular storage management methodology. Future storage standards remain fully compatible with this routing architecture.
 
@@ -445,7 +458,7 @@ The architectural difference is fundamental:
 - **ERC-2535**: Selector → function mapping → facet dispatch
 - **This standard**: Facet index → facet dispatch (selectors reserved for compatibility)
 
-Both standards may coexist. Protocols requiring maximum routing flexibility and can manage large selector tables might prefer ERC-2535. Protocols prioritizing upgrade efficiency and facet-level modularity should evaluate this standard.
+Both standards may coexist. Protocols requiring maximum routing flexibility might prefer ERC-2535. Protocols prioritizing upgrade efficiency and facet-level modularity should evaluate this standard.
 
 ## Facets as First-Class Protocol Components
 
