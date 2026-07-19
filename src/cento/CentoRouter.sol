@@ -91,7 +91,7 @@ contract CentoRouter {
             /// @param idx The index of the facet layout in storage.
             /// @param totalSize Total calldata length available.
             /// @param stripLen Bytes to strip from the end of calldata (0 or 1)
-            /// @notice inline functions are impossible to cover in the eyes of forge coverage
+            /// @notice inline functions are impossible to cover in the eyes of `forge coverage`
             function executeFacet(idx, totalSize, stripLen) {
                 let facet := sload(add(BASE_SLOT, idx))
                 if iszero(facet) { 
@@ -114,7 +114,7 @@ contract CentoRouter {
     receive() external payable {}
 }
 
-// === BST Example ===
+// === BST Example (values are arbitrary) ===
 //
 // if lt(selector, 0x23b872dd) {
 //     if lt(selector, 0x095ea7b3) {

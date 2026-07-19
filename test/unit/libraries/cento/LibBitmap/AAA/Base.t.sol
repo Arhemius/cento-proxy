@@ -29,28 +29,3 @@ abstract contract LibBitmapTest is Test, $Execute {
         }
     }
 }
-
-    // function map(
-    //     bytes memory data,
-    //     function(uint256, bytes memory, uint256) internal pure returns (uint256) fn,
-    //     bytes memory args
-    // ) internal pure returns (bytes memory) {}
-
-
-    // function map (
-    //     bytes memory data, 
-    //     function(uint256, bytes memory, uint256) internal pure returns (uint256) fn,
-    //     bytes memory args,
-    //     function(
-    //         bytes memory, 
-    //         function(uint256, bytes memory, uint256) internal pure returns (uint256), 
-    //         bytes memory
-    //     ) internal pure returns (bytes memory) transform
-    // ) {}
-    
-        // uint256[] memory arr = word(data);
-        // for (uint i; i < arr.length; i++) {
-        //     arr[i] = fn(arr[i], args, i);
-        // }
-        // return fromWord(arr);
-    // }

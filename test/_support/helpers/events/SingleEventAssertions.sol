@@ -109,6 +109,8 @@ abstract contract SingleEventAssertions is EventAssertionsCore, EventStructs {
     }
 }
 
+// =============== Usage Example ===============
+
 // then_MatchesEventAt(logs[i], i, address(lc), IndexedEvent({
 //     selector: EVT_OWNERSHIP_TRANSFERRED,
 //     topics:   W_(abi.encode(previousOwner, newOwner))

@@ -4,11 +4,6 @@ pragma solidity ^0.8.29;
 import {IBitmap} from "support/interfaces/IBitmap.sol";
 import { bitmap256 } from "cento/types/bitmap256.sol";
 
-/**
- * @title ReferenceBitmapDebug
- * @notice Reference implementation contract that implements IBitmap by copying LibBitmap library, except for debug-mode assertions
- * @dev Enables modifier-erasure testing of the LibBitmap library
- */
 contract ReferenceBitmapDebug is IBitmap {
           
     uint64  private constant DEBRUIJN64_MAGIC   = 0x03f79d71b4cb0a89;

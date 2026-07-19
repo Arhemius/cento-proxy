@@ -93,10 +93,3 @@ abstract contract MultiEventAssertions is SingleEventAssertions {
         ));
     }
 }
-
-// further checks are about checking that some event sequence exists and repeats n times
-// and we should later add getters like getFirstEventEmissionIndex, getFirstEventSequenceEmissionIndex, and stuff like that
-// we should be able to check only events we care about and not care about other events in-between, or some events whithin the
-// sequence. For example, we may check sequence existance, where it starts with these events, ends with these, and so on.
-// but that's a much much later concern, if I get funded
-// we can also make some special check where we only validate the order

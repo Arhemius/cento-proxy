@@ -4,11 +4,6 @@ pragma solidity ^0.8.29;
 import {IBitmap} from "support/interfaces/IBitmap.sol";
 import {bitmap256} from "cento/types/bitmap256.sol";
 
-/**
- * @title ReferenceBitmap
- * @notice Array-based reference implementation (OBVIOUSLY CORRECT)
- * @dev Contract implementing IBitmap with obviously-correct algorithms
- */
 contract ReferenceBitmap is IBitmap {
     struct Bitmap {
         bool[256] slots;
