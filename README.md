@@ -74,7 +74,8 @@ Run the complete benchmark suite:
 release forge test --match-path "test/gas/**" --isolate -vv | grep "\[Gas\]"
 ```
 
-> Note: `release` stands for `FOUNDRY_PROFILE=release`. To use alias, add to your .bashrc or .zshrc:
+> [!NOTE]
+> `release` stands for `FOUNDRY_PROFILE=release`. To use alias, add to your .bashrc or .zshrc:
 >
 > ```bash
 > release() {
@@ -229,6 +230,7 @@ forge test \
 
 Verify that debug assertions have been removed from the release build.
 
+> [!IMPORTANT]
 > Ensure `src/cento/libraries/LibDebug.sol` contains:
 >
 > ```solidity
