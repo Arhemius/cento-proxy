@@ -13,7 +13,7 @@ requires: 165, 173
 
 # Abstract
 
-This standard defines a modular proxy architecture for Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility routing**.
+This standard defines a modular proxy architecture for Ethereum Virtual Machine that separates **protocol routing** from **interface compatibility**.
 
 Unlike existing modular proxy standards, this specification identifies protocol facets using compact routing indices appended to calldata, while preserving conventional function selectors for compatibility with standardized Ethereum interfaces and external tooling.
 
@@ -52,6 +52,8 @@ Instead of using function selectors as routing identifiers, it introduces **inde
 Function selectors retain their original purpose as compatibility identifiers for standardized Ethereum interfaces, while routing indices become dedicated protocol routing identifiers.
 
 By separating protocol routing from interface compatibility, routing metadata naturally scales with implementation modules rather than exported functions, enabling facet-oriented protocol composition while preserving compatibility with existing Ethereum standards and tooling.
+
+Being an alternative design point for multi-facet protocols, the same motivations of ERC-2535 apply to this standard.
 
 ## Architectural Innovation
 

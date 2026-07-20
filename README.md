@@ -1,6 +1,6 @@
 # Cento Proxy
 
-> **A modular proxy pattern for Ethereum Virtual Machine that combines facet indices for protocol routing with selector-based routing for compatibility standards, reducing deployment and upgrade costs while preserving full interoperability with existing Ethereum tooling.**
+> **A modular proxy pattern for the Ethereum Virtual Machine that identifies facets through routing indices while preserving selector-based routing for Ethereum compatibility standards, reducing deployment and upgrade costs without sacrificing interoperability.**
 
 ## Overview
 
@@ -356,6 +356,8 @@ forge coverage --report lcov && genhtml lcov.info \
     --output-dir coverage
 ```
 
+---
+
 ## Deployment
 
 The repository includes deployment scripts for local development and benchmarking.
@@ -461,6 +463,22 @@ cast call <CAST_ADAPTER> \
     "supportsInterface(bytes4)" \
     0xBEEFBEEF \
     --rpc-url http://127.0.0.1:8545
+```
+
+---
+
+# Documentation
+
+Documentation can be generated locally with:
+
+```bash
+forge doc
+```
+
+And served on localhost:3000 with:
+
+```bash
+forge doc --serve --port 3000
 ```
 
 ---
@@ -637,22 +655,6 @@ This pattern does not supersede ERC-2535; it is an **alternative design point** 
 
 ---
 
-# Documentation
-
-Documentation can be generated locally with:
-
-```bash
-forge doc
-```
-
-And served on localhost:3000 with:
-
-```bash
-forge doc --serve --port 3000
-```
-
----
-
 # Compatibility Standards
 
 The reference implementation includes native support for:
@@ -666,7 +668,7 @@ Additional standards (ERC-20, ERC-721, ERC-1155, etc.) can be implemented as sta
 
 # ERC Proposal
 
-Cento Proxy is proposed as an Ethereum Request for Comments (ERC) standard. The formal specification draft is available in the `ERC-83XX.md` file.
+Cento Proxy is proposed as an Ethereum Request for Comments (ERC) standard. The formal specification draft is available in the `erc-XXXX.md` file.
 
 The ERC submission process follows the standardization pathway for core Ethereum protocol extensions. Community discussion and feedback are invited.
 
@@ -709,18 +711,16 @@ The current reference implementation is considered feature complete for the prop
 
 ---
 
-# Get Support
-
-If you have questions or would like to discuss Cento - [email me](mailto:artembuchihin@gmail.com).
-
 # Author
 
 This example implementation was written by Artem Buchikhin.
+If you have questions or would like to discuss Cento - [email me](mailto:artembuchihin@gmail.com).
 
-Contact:
+Contact Info:
 
-- artembuchihin@gmail.com
-- https://github.com/Arhemius
+- [artembuchihin@gmail.com](mailto:artembuchihin@gmail.com)
+- [https://github.com/Arhemius](https://github.com/Arhemius)
+- [https://www.linkedin.com/in/artem-buchikhin-215a71241/](https://www.linkedin.com/in/artem-buchikhin-215a71241/)
 
 ---
 
