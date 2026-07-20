@@ -68,7 +68,7 @@ In selector-centric modular architectures, selectors additionally serve as facet
 This standard treats protocol routing and interface compatibility as independent concerns:
 
 - **Protocol routing** uses compact facet indices (one byte per facet)
-- **Interface compatibility** uses standard function selectors for Ethereum interfaces
+- **Interface compatibility** maps standardized Ethereum function selectors to routing indices
 
 Result: facets become first-class routing entities, selector tables remain focused on interoperability, and routing metadata scales with module count rather than function count.
 
@@ -88,7 +88,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 **Protocol Function**: A function invoked through routing-index-based dispatch. Protocol functions do not require globally unique function selectors.
 
-**Compatibility Function**: A function exposed for interoperability with standardized Ethereum interfaces. Compatibility functions use conventional function selector dispatch.
+**Compatibility Function**: A function exposed for interoperability with standardized Ethereum interfaces. Compatibility functions support conventional function selector dispatch.
 
 **Atomic Update**: A single transaction modifying the routing table (installing, replacing, or removing facets) with all-or-nothing semantics.
 
@@ -132,7 +132,7 @@ Compatibility functions use conventional selector-based dispatch for any standar
 
 The router MUST detect compatibility function selectors and dispatch them without appending routing metadata. Compatibility routing coexists with protocol routing without mutual interference.
 
-Examples of standardized interfaces include [ERC-165](./erc-165.md) (interface detection) and [ERC-173](./erc-173.md) (ownership), though any Ethereum interface using function selectors is supported through compatibility routing.
+Examples of standardized interfaces include [ERC-165](./erc-165.md) (interface detection) and [ERC-173](./erc-173.md) (ownership), though any Ethereum interface using function selectors SHOULD be supported through compatibility routing.
 
 ### Calldata Encoding
 
@@ -435,9 +435,16 @@ Both routing models may coexist within the Ethereum ecosystem.
 
 ## Routing Index Width
 
-This specification standardizes an 8-bit routing index. One-byte routing metadata minimizes calldata overhead while supporting up to 256 routing entries.
+This specification standardizes an 8-bit routing index (0–255). The choice of an 8-bit routing index provides several advantages:
 
-The standardized routing width simplifies interoperability between compliant implementations. Protocols requiring larger routing tables may extend the routing index width or compose additional routing mechanisms. Such extensions remain outside the scope of this specification provided they preserve the routing semantics defined herein.
+- **Minimal calldata overhead**: Routing metadata requires only one additional byte.
+- **Sufficient routing capacity**: Supports up to 256 facets, sufficient for virtually all existing modular protocol architectures.
+- **Implementation simplicity**: Byte-aligned routing metadata simplifies calldata processing and low-level implementations.
+- **Gas efficiency**: Introduces minimal routing overhead while eliminating selector management for protocol routing.
+
+Standardizing the routing index width promotes interoperability between compliant implementations.
+
+Protocols requiring larger routing tables MAY extend the routing index width or introduce additional routing mechanisms. Such extensions are outside the scope of this specification, provided they preserve the routing semantics defined herein.
 
 ## Storage Independence
 
@@ -487,15 +494,6 @@ Accordingly, it does not mandate:
 
 Implementations remain free to innovate within these areas while preserving interoperability defined by this specification.
 
-## Eight-Bit Indices
-
-This specification standardizes 8-bit routing indices (0–255). Why 8 bits?
-
-- **One byte overhead**: Appending one byte minimizes calldata growth
-- **256 facets**: Sufficient for virtually all protocol architectures
-- **Simplicity**: Byte-aligned routing simplifies assembly implementation
-- **Gas efficiency**: Minimal additional overhead vs. selector dispatch
-
 ## Immutable Router
 
 The router contract should be immutable after deployment. This:
@@ -510,7 +508,7 @@ Implementations MAY include router upgrades if governance permits, but should av
 
 ## Authorization
 
-Atomic updates directly control protocol behavior. Implementations MUST:
+Atomic updates directly control protocol behavior. Implementations should:
 
 - Restrict `atomicUpdate` to authorized entities
 - Enforce time-locks or multi-sig for sensitive upgrades
@@ -553,23 +551,22 @@ Failure to validate facets can result in:
 
 Routers must validate routing metadata before delegation:
 
-1. **Non-zero calldata**: Empty calldata must not reach fallback routing. Use `receive()`.
+1. **Non-zero calldata**: Empty calldata must not reach fallback routing. Use `receive()` or add explicit check.
 2. **Valid indices**: Routing indices must reference installed facets.
-3. **No zero addresses**: Routing entries must not target address(0).
+3. **No zero addresses**: Routers must not delegate to address(0).
 4. **No self-routing**: Routers must not delegate to themselves.
 
 Failure to validate can result in:
-- Gas exhaustion (empty calldata calldata copy overflow)
+- Gas exhaustion (empty calldata leading to calldatacopy overflow)
 - Silent failures (zero address delegation)
-- Infinite delegation loops (router self-delegation)
 
 ## Selector Collisions
 
-While protocol functions do not require unique selectors, compatibility functions must:
+While protocol functions do not require unique selectors, compatibility functions do:
 
-- ERC-165: `supportsInterface(bytes4)` — `0x01ffc9a7`
-- ERC-173: `owner()` — `0x8da5cb5b`
-- ERC-173: `transferOwnership(address)` — `0xf2fde38b`
+- ERC-165: `supportsInterface(bytes4)` – `0x01ffc9a7`
+- ERC-173: `owner()` – `0x8da5cb5b`
+- ERC-173: `transferOwnership(address)` – `0xf2fde38b`
 
 Routers must dispatch these selectors to the appropriate facets. Custom compatibility facets must avoid colliding with these standard selectors.
 

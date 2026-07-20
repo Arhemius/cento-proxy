@@ -1,17 +1,17 @@
 # Cento Proxy
 
-> **A modular proxy pattern for the Ethereum Virtual Machine that identifies facets through routing indices while preserving selector-based routing for Ethereum compatibility standards, reducing deployment and upgrade costs without sacrificing interoperability.**
+> **A modular proxy pattern for the Ethereum Virtual Machine that identifies facets through routing indices while preserving selector-based compatibility for Ethereum standards, reducing deployment and upgrade costs without sacrificing interoperability.**
 
 ## Overview
 
-Cento Proxy separates **protocol routing** from **interface compatibility routing**:
+Cento Proxy separates **protocol routing** from **interface compatibility**:
 
 - **Protocol routing** uses compact facet indices (one byte per facet) for implementation modules
-- **Interface compatibility routing** uses standard function selectors for Ethereum standards
+- **Interface compatibility** maps standardized Ethereum function selectors to routing indices
 
-This separation eliminates selector management as a permanent maintenance cost while ensuring existing Ethereum infrastructure continues functioning without modification. The result is a system with significantly lower deployment and upgrade costs, simpler routing metadata, and native compatibility with the Ethereum ecosystem.
+This separation eliminates selector management as a permanent protocol maintenance cost while ensuring existing Ethereum infrastructure continues functioning without modification. The result is a system with significantly lower deployment and upgrade costs, simpler routing metadata, and native compatibility with the Ethereum ecosystem.
 
-The reference implementation is complete and deployable: fork it and deploy immediately. Includes comprehensive examples for deployment, atomic upgrades, storage migration, and operational management. No selector boilerplate required.
+The reference implementation is a complete boilerplate project: fork it, build your protocol, and deploy immediately. It includes comprehensive examples for deployment, atomic upgrades, migration, benchmarking, testing, and operational management, with no selector management overhead.
 
 ---
 
