@@ -635,7 +635,7 @@ For most protocols, upgrade frequency far outweighs call frequency, making this 
 - Smaller audit and formal verification surface
 - Simpler deployment and upgradability for facet management part
 - Batch calls benefit from per-facet slot warmups compared to per-selector ones
-- Facets may implement custom `receive()` functions
+- Facets may implement custom `receive()` and `fallback()` functions
 
 ---
 
