@@ -170,7 +170,7 @@ The delegated facet executes within the storage context of the router. The route
 
 ### Fallback Function Example Implementation
 
-The following is an educational example demonstrating the routing dispatch logic. A production-ready implementation is available in the [Reference Implementation](#reference-implementation) section.
+The following is an educational example demonstrating the routing dispatch logic. An extensive reference implementation is available in the [Reference Implementation](#reference-implementation) section.
 
 ```solidity
 // SPDX-License-Identifier: MIT
