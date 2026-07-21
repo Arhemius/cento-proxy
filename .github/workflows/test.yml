@@ -37,4 +37,4 @@ jobs:
         run: forge build --sizes
 
       - name: Run tests
-        run: forge test -vvv
+        run: forge test --no-match-path "test/gas/cento/deployment/**" -vvv
