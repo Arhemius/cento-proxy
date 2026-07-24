@@ -295,7 +295,7 @@ Generate and visualize depolyment costs (for Cento and Diamond):
 > And Diamond:
 >
 > ```bash
-> release forge test/gas/cento/deployment/_DeployDiamondGas.s.sol \
+> release forge script test/gas/cento/deployment/_DeployDiamondGas.s.sol \
 >     --rpc-url http://127.0.0.1:8545 \
 >     --broadcast \
 >     --private-key <PRIVATE_KEY> \

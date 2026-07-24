@@ -61,8 +61,7 @@ contract CentoRouterGasTest is CentoTM, GasReportLogger, SimpleActors, CentoArra
     }
 
     function test_01_00_cento_pure() public {
-        bytes memory _calldata = abi.encodeCall(IERC173.owner, ());
-        CentoCall._append(CentoV1.OWNERSHIP, _calldata);
+        bytes memory _calldata = bytes.concat(abi.encodeCall(IERC173.owner, ()), bytes1(CentoV1.OWNERSHIP));
         pr.owner(_calldata);
         pr.owner(_calldata);
         th("cento", "pure", vm.snapshotGasLastCall("cento", "pure") - totalGasOverhead);
