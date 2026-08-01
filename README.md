@@ -670,7 +670,7 @@ Additional standards (ERC-20, ERC-721, ERC-1155, etc.) can be implemented as sta
 
 # ERC Proposal
 
-Cento Proxy is proposed as an Ethereum Request for Comments (ERC) standard. The formal specification draft is available in the `erc-XXXX.md` file.
+Cento Proxy is proposed as an Ethereum Request for Comments (ERC) standard. The formal specification draft is available in the `erc-8349.md` file.
 
 The ERC submission process follows the standardization pathway for core Ethereum protocol extensions. Community discussion and feedback are invited.
 
